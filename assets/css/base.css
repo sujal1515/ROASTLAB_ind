@@ -1,0 +1,615 @@
+/* =====================================================================
+   LATTECANO — base layer
+   Tokens, resets, typography, chrome (nav, cursor, loader, grain)
+   ===================================================================== */
+
+:root{
+  /* --- palette -----------------------------------------------------
+     coolors.co/254533-21463b-214639-c59d58
+     Three deep greens a hair apart, and one antique gold. Everything else
+     here is derived from those four rather than added to them: deeper and
+     lighter steps of the same green, an ivory warmed toward the gold, and
+     two further golds for small type. The palette gold manages 4.2:1 on the
+     forest and only 2.2:1 on ivory — right for fills, rules, glows and
+     display type, not for a ten-pixel label — so small gold type takes a
+     lighter step on the greens and a deeper one on the ivory.
+
+     What stays brown is the product: the beans, the coffee in the cups,
+     the roast-level art. Those are information, not branding. */
+  --pine:     #254533;
+  --spruce:   #21463B;
+  --forest:   #214639;
+  --gold:     #C59D58;
+
+  /* The forest lit and in shade. A large field in one flat green reads as
+     paint; the same green with light falling across it reads as a room.
+     These two are the forest a few steps either way, same hue, so every
+     dark section can carry a light without leaving the palette. */
+  --forest-lit:   #285443;
+  --forest-shade: #183B2F;
+
+  --ink:      #132B22;   /* the deepest green: type on ivory (13:1), darkest ground */
+  --ink-2:    #1A382D;   /* between ink and forest, for surfaces set on the greens */
+  --ink-3:    var(--pine);
+  --deep:     #0C2019;   /* vignettes, scrims, the bottom of the page */
+  --gold-lt:  #D6B77E;   /* small gold type on the greens — 5.5:1 on forest */
+  --gold-dk:  #83622A;   /* small gold type on ivory — 4.9:1 */
+  --gold-hi:  #DCC08A;   /* the lit edge of a gold fill */
+  --sage:     #6F8A7B;   /* quiet green ornament on ivory */
+  --oat:      #EFE7D4;   /* type on the greens — 8.5:1 on forest */
+  --cream:    #F5F0E4;
+  --paper:    #FBF8F0;
+
+  /* older names the section styles still speak, now in the palette */
+  --crema:    var(--gold);
+  --cherry:   var(--gold);
+  --leaf:     var(--pine);
+  --roast:    var(--forest);
+  --cocoa:    var(--gold-dk);
+
+  --fg:       var(--ink);
+  --bg:       var(--cream);
+  --muted:    rgba(19,43,34,.62);
+  --hair:     rgba(19,43,34,.13);
+
+  /* --- type -------------------------------------------------------- */
+  --sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Bodoni Moda", "Didot", "Playfair Display", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* --- rhythm ------------------------------------------------------ */
+  --gut: clamp(18px, 4vw, 64px);
+  --rad: 14px;
+
+  /* --- motion ------------------------------------------------------ */
+  --ease: cubic-bezier(.22,1,.36,1);
+  --ease-io: cubic-bezier(.66,0,.34,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{
+  -webkit-text-size-adjust:100%;
+  scroll-behavior:auto;      /* Lenis drives scrolling */
+}
+
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--fg);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.55;
+  font-weight:400;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+body.is-loading{ overflow:hidden; height:100vh; }
+body.no-scroll{ overflow:hidden; }
+
+img,svg,canvas{ display:block; max-width:100%; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+input{ font:inherit; color:inherit; }
+a{ color:inherit; text-decoration:none; }
+ul,ol{ margin:0; padding:0; list-style:none; }
+h1,h2,h3,h4,p,figure,blockquote{ margin:0; }
+
+::selection{ background:var(--gold); color:var(--ink); }
+
+/* ---------------------------------------------------------------- type */
+.mono{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-weight:500;
+}
+
+.display{
+  font-family:var(--serif);
+  font-weight:400;
+  letter-spacing:-.005em;
+  line-height:.98;
+  font-size:clamp(38px,6.4vw,104px);
+}
+
+.eyebrow{
+  display:block;
+  color:var(--gold-dk);
+  margin-bottom:18px;
+}
+/* the same label on the greens needs the lighter gold to stay legible */
+[data-theme="dark"] .eyebrow,
+.chamber .eyebrow,
+.footer .eyebrow{ color:var(--gold-lt); }
+
+.link{
+  position:relative;
+  display:inline-block;
+  font-size:12px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  font-weight:600;
+  padding-bottom:3px;
+}
+.link::after{
+  content:"";
+  position:absolute; left:0; bottom:0;
+  width:100%; height:1px;
+  background:currentColor;
+  transform:scaleX(1);
+  transform-origin:right;
+  transition:transform .5s var(--ease);
+}
+/* The underline wipes through rather than vanishing: out to the right, back
+   in from the left. The word itself never moves or changes weight. */
+.link:hover::after{ animation:linkWipe .7s var(--ease) both; }
+@keyframes linkWipe{
+  0%   { transform:scaleX(1); transform-origin:right; }
+  45%  { transform:scaleX(0); transform-origin:right; }
+  46%  { transform:scaleX(0); transform-origin:left; }
+  100% { transform:scaleX(1); transform-origin:left; }
+}
+
+/* HOVER FILLS — buttons and nav pills.
+   A fill rises from below and the label turns to sit on it. Two rules make
+   that safe, and both were broken:
+   1. The fill is a fixed colour per context, never currentColor. The hover
+      changes the label's colour, so a currentColor fill changed with it and
+      fill and label came out the same colour — the label vanished.
+   2. The fill paints under the label. It sits at z-index -1 inside its own
+      stacking context (isolation), so it covers the pill's background but
+      never the words; without that a positioned fill paints over plain text,
+      and on the gold button an ink fill slid in BEHIND the gold and left
+      light-gold type on gold. */
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:14px 26px;
+  border:1px solid currentColor;
+  border-radius:100px;
+  font-size:12px; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase;
+  overflow:hidden; position:relative; isolation:isolate;
+  --fill:var(--oat); --on-fill:var(--ink);
+  transition:color .45s var(--ease), border-color .45s var(--ease);
+}
+.btn::before{
+  content:"";
+  position:absolute; inset:0;
+  background:var(--fill);
+  transform:translateY(101%);
+  transition:transform .5s var(--ease);
+  z-index:-1;
+}
+.btn:hover, .btn:focus-visible{ color:var(--on-fill); }
+.btn:hover::before, .btn:focus-visible::before{ transform:translateY(0); }
+/* Gold fills carry deep green type: ivory on the gold is 2.4:1, the ink
+   is 6:1. The hover floods it with the forest and turns the type gold. */
+.btn--solid{
+  background:var(--gold); border-color:var(--gold); color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,244,214,.35);
+  --fill:var(--forest); --on-fill:var(--gold-hi);
+}
+.btn--solid:hover{ border-color:var(--forest); }
+
+/* text-reveal primitives ------------------------------------------- */
+/* An inline-block is a block container, so inherited text-indent would be
+   re-applied to every single clip. Kill it here once. */
+.clip{ display:inline-block; overflow:hidden; vertical-align:bottom; text-indent:0; }
+.clip > .ch,
+.clip > .word,
+.clip > .line{ display:inline-block; text-indent:0; will-change:transform; }
+
+/* thin vertical column rules used on light sections ----------------- */
+.rules{
+  position:absolute; inset:0;
+  pointer-events:none;
+  background-image:repeating-linear-gradient(
+      to right,
+      var(--hair) 0 1px,
+      transparent 1px calc(100% / 7));
+  opacity:.5;
+  mix-blend-mode:multiply;
+}
+
+/* =================================================================== */
+/* THE BEAN FIELD                                                      */
+/*                                                                     */
+/* One fixed canvas for the whole page. It is layered ABOVE each        */
+/* section's background and BELOW its copy, which is what lets the      */
+/* beans travel across sections instead of sitting in a box. Every      */
+/* content wrapper therefore needs to sit at z-index 3 or higher.       */
+/* =================================================================== */
+#beanField{
+  position:fixed;
+  inset:0;
+  width:100vw; height:100vh;
+  z-index:2;
+  pointer-events:none;
+}
+
+/* =================================================================== */
+/* LOADER                                                              */
+/*                                                                     */
+/* Not a curtain in front of the site but a hole cut in one. The cup    */
+/* behind it is the hero's, live, from the first frame — so the end of  */
+/* the loader is the ink opening out, not a swap.                       */
+/* =================================================================== */
+.loader{
+  --ring:clamp(280px,54vmin,460px);
+  --hole:calc(var(--ring) * 0.40);
+  position:fixed; inset:0; z-index:9000;
+  overflow:hidden;
+  pointer-events:auto;
+  cursor:grab;
+}
+.loader:active{ cursor:grabbing; }
+
+.loader__iris{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 50% 46%,
+      rgba(12,32,25,0) 0,
+      rgba(12,32,25,0) var(--hole),
+      rgba(12,32,25,.55) calc(var(--hole) + 36px),
+      rgba(12,32,25,.95) calc(var(--hole) + 100px),
+      /* full ink well inside the corners: at a wider falloff the nav was
+         still faintly readable through the top of the vignette */
+      #0C2019 calc(var(--hole) + 170px));
+}
+/* the warm cast the cup is sitting in */
+.loader__iris::after{
+  content:"";
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 46%,
+    rgba(197,157,88,.18) 0, rgba(37,69,51,.22) 38%, transparent 62%);
+}
+
+.loader__ring{
+  position:absolute; top:46%; left:50%;
+  width:var(--ring); height:var(--ring);
+  transform:translate(-50%,-50%);
+  overflow:visible;
+  will-change:transform,opacity;
+}
+.loader__track{
+  fill:none; stroke:rgba(239,231,212,.12); stroke-width:1;
+}
+.loader__arc{
+  fill:none; stroke:var(--crema); stroke-width:1.6;
+  stroke-linecap:round;
+  transform:rotate(-90deg);
+  transform-origin:100px 100px;
+  filter:drop-shadow(0 0 6px rgba(197,157,88,.55));
+}
+.loader__ticks line{ stroke:rgba(239,231,212,.22); stroke-width:1; }
+.loader__ticks line.on{ stroke:var(--crema); }
+
+.loader__inner{
+  position:absolute; left:0; right:0;
+  bottom:clamp(54px,11vh,120px);
+  text-align:center;
+  padding:0 var(--gut);
+}
+/* Structurally identical to .hero__title, because at the end of the
+   loader this word is flown into that box and the two have to line up:
+   same family, same weight, same line box, no gap of its own. Only the
+   size and the tracking differ, and both of those are tweened. */
+.loader__word{
+  display:flex; justify-content:center;
+  font-family:var(--sans);
+  font-weight:800;
+  font-size:clamp(24px,4.6vw,48px);
+  line-height:.82;
+  letter-spacing:.14em;
+  color:var(--oat);
+  overflow:hidden;
+}
+/* the loader's word is the logo, a letter to a box, same as the hero's */
+.loader__word{ color:var(--gold); }
+.loader__word .rl-l{ height:.8em; width:auto; }
+.loader__word b{
+  display:block; flex:0 0 auto;
+  padding-bottom:.02em;
+  transform:translateY(110%); opacity:0;
+}
+.loader__meta{
+  margin-top:18px;
+  display:flex; align-items:center; gap:14px; justify-content:center;
+  color:rgba(239,231,212,.5);
+}
+.loader__dot{
+  width:4px; height:4px; border-radius:50%;
+  background:var(--gold);
+  animation:loaderPulse 1.4s ease-in-out infinite;
+}
+@keyframes loaderPulse{
+  0%,100%{ opacity:.25; transform:scale(.7); }
+  50%    { opacity:1;   transform:scale(1.15); }
+}
+.loader__hint{
+  display:block; margin-top:26px;
+  font-size:8.5px; letter-spacing:.3em;
+  color:rgba(239,231,212,.24);
+}
+
+/* the hero's own copy waits its turn behind the ink */
+body.is-loading .hero__ui,
+body.is-loading .hero__cue{ opacity:0; }
+
+/* A phone's hero cup is nearly as tall as the window, so the dial opens
+   out to frame its width and lets the rest of it stand through. */
+@media (max-width:760px){
+  .loader{ --ring:min(86vw,360px); --hole:calc(var(--ring) * 0.44); }
+  .loader__word{ font-size:clamp(22px,7vw,34px); letter-spacing:.12em; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .loader__dot{ animation:none; opacity:.7; }
+}
+
+/* =================================================================== */
+/* CURSOR                                                              */
+/* =================================================================== */
+/* No blend mode. `difference` kept the cursor visible on any ground by
+   inverting whatever sat under it — which, over type, meant inverting the
+   type: a pink smear across the words the pointer was on. The cursor takes
+   the palette instead, gold on the greens and deep green on the ivory, and
+   whatever it passes over keeps its own colour. */
+.cursor{
+  position:fixed; top:0; left:0; z-index:8000;
+  pointer-events:none;
+  opacity:0;
+  --cur:var(--gold-lt);
+}
+.on-light .cursor{ --cur:var(--ink); }
+/* the takeovers are dark whatever section opened them */
+.on-light body.no-scroll .cursor{ --cur:var(--gold-lt); }
+.cursor__dot{
+  position:absolute; width:6px; height:6px; border-radius:50%;
+  background:var(--cur); transform:translate(-50%,-50%);
+  transition:opacity .25s, background-color .4s;
+}
+.cursor__ring{
+  position:absolute;
+  width:38px; height:38px; border-radius:50%;
+  border:1px solid var(--cur);
+  opacity:.8;
+  transform:translate(-50%,-50%);
+  display:grid; place-items:center;
+  transition:border-color .4s, background-color .35s, margin .45s var(--ease);
+}
+.cursor__label{
+  color:var(--cur); font-size:7.5px; opacity:0; white-space:nowrap;
+  letter-spacing:.16em;
+  transition:opacity .25s;
+}
+/* The labelled ring steps aside. It used to sit centred on the pointer with
+   a tinted, blurred glass behind its word — so over a roast panel it blurred
+   the very description you were reading. Now it is hollow, it slides off
+   down and to the right of the pointer like a tag on a string, and the dot
+   stays put: the dot says where you are, the tag says what a click does,
+   and neither sits on the thing you are looking at. */
+.cursor.is-active .cursor__ring{
+  border-color:var(--gold);
+  margin:36px 0 0 36px;
+}
+.cursor.is-active .cursor__label{
+  opacity:1; color:var(--gold-hi);
+  text-shadow:0 1px 6px rgba(5,18,13,.9);
+}
+/* Over a button, a link or a pill the custom cursor steps out altogether.
+   The system pointer is still there, and the control's own fill is the
+   answer to the hover; even a 6px dot sat on top of the label's letters. */
+.cursor.is-text .cursor__dot{ opacity:0; }
+
+@media (hover:none),(pointer:coarse){ .cursor{ display:none; } }
+
+/* =================================================================== */
+/* GRAIN                                                               */
+/* =================================================================== */
+.grain{
+  position:fixed; inset:-120px; z-index:7000;
+  pointer-events:none; opacity:.4;
+  background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/></filter>\
+<rect width='200' height='200' filter='url(%23n)' opacity='.42'/></svg>");
+  animation:grainShift 1.1s steps(3) infinite;
+  mix-blend-mode:overlay;
+}
+@keyframes grainShift{
+  0%{transform:translate(0,0)} 33%{transform:translate(-6px,4px)}
+  66%{transform:translate(5px,-5px)} 100%{transform:translate(0,0)}
+}
+
+/* =================================================================== */
+/* NAV                                                                 */
+/* =================================================================== */
+.nav{
+  position:fixed; z-index:6000;
+  top:18px; left:var(--gut); right:var(--gut);
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px;
+  color:var(--oat);
+  transition:color .6s var(--ease), transform .6s var(--ease), opacity .4s linear;
+  will-change:transform;
+}
+.nav.is-light{ color:var(--ink); }
+.nav.is-hidden{ transform:translateY(-140%); }
+
+.nav__group{ display:flex; gap:6px; flex:1; }
+.nav__group--right{ justify-content:flex-end; }
+
+.nav__pill{
+  position:relative; isolation:isolate;
+  --fill:var(--oat); --on-fill:var(--ink);
+  padding:9px 18px;
+  font-size:11px; font-weight:600;
+  letter-spacing:.09em; text-transform:uppercase;
+  border:1px solid currentColor;
+  border-radius:100px;
+  opacity:.82;
+  background:rgba(239,231,212,.04);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  overflow:hidden;
+  transition:opacity .3s, color .4s var(--ease);
+}
+/* see HOVER FILLS above */
+.nav__pill::before{
+  content:""; position:absolute; inset:0; z-index:-1;
+  background:var(--fill); transform:translateY(102%);
+  transition:transform .48s var(--ease);
+}
+.nav.is-light .nav__pill{ --fill:var(--forest); --on-fill:var(--cream); }
+.nav__pill:hover, .nav__pill:focus-visible{ opacity:1; color:var(--on-fill); }
+.nav__pill:hover::before, .nav__pill:focus-visible::before{ transform:translateY(0); }
+.nav__pill--solid,
+.nav.is-light .nav__pill--solid{
+  background:var(--gold); border-color:var(--gold);
+  color:var(--ink); opacity:1;
+  --fill:var(--forest); --on-fill:var(--gold-hi);
+}
+.nav__pill--solid:hover{ border-color:var(--forest); }
+
+.nav__brand{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+
+/* ---------------------------------------------------------------- logo */
+/* The sprite only holds the paths; it takes no space and is never seen. */
+.rl-sprite{ position:absolute; width:0; height:0; overflow:hidden; }
+/* <use> clones only the element it points at, never the group around it, so
+   the colour has to reach each letter from the outside — through the svg
+   that draws it — or every letter paints the default black. */
+.rl-logo, .rl-l{ display:block; height:auto; overflow:visible; fill:currentColor; fill-rule:evenodd; }
+
+/* Gold on the greens, forest on the ivory: the two colours the artwork was
+   drawn in, and the pair the palette is built from. */
+.nav__mark{
+  width:auto; height:26px;
+  color:var(--gold);
+  transition:color .6s var(--ease);
+}
+.nav.is-light .nav__mark{ color:var(--forest); }
+/* The hover is the letters, not a box over them: each one rises a hair in
+   turn, a ripple left to right, and settles. Nothing covers the mark and
+   nothing next to it moves. (Units are the logo's own — 12 of 160.) */
+.nav__mark use{
+  transition:transform .5s var(--ease);
+}
+.nav__brand:hover .nav__mark use,
+.nav__brand:focus-visible .nav__mark use{ transform:translateY(-12px); }
+.nav__mark use:nth-child(2){ transition-delay:.03s; }
+.nav__mark use:nth-child(3){ transition-delay:.06s; }
+.nav__mark use:nth-child(4){ transition-delay:.09s; }
+.nav__mark use:nth-child(5){ transition-delay:.12s; }
+.nav__mark use:nth-child(6){ transition-delay:.15s; }
+.nav__mark use:nth-child(7){ transition-delay:.18s; }
+.nav__mark use:nth-child(8){ transition-delay:.21s; }
+.nav__brand:hover .nav__mark{ color:var(--gold-hi); }
+.nav.is-light .nav__brand:hover .nav__mark{ color:var(--ink); }
+
+/* edge rail tab ----------------------------------------------------- */
+.railtab{
+  position:fixed; z-index:6000;
+  right:0; top:50%;
+  transform:translateY(-50%);
+  background:var(--gold); color:var(--ink);
+  padding:22px 9px;
+  border-radius:4px 0 0 4px;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  font-weight:600;
+  transition:padding-right .35s var(--ease), background .35s;
+}
+.railtab span{ writing-mode:vertical-rl; }
+.railtab i{ font-style:normal; font-size:13px; }
+.railtab:hover{ padding-right:16px; background:var(--gold-hi); }
+
+/* progress rail ----------------------------------------------------- */
+.progress{
+  position:fixed; z-index:6000;
+  left:0; right:0; top:0; height:2px;
+  background:transparent;
+}
+.progress i{
+  display:block; height:100%; width:100%;
+  background:linear-gradient(90deg,var(--gold-dk),var(--gold) 55%,var(--gold-hi));
+  transform:scaleX(0); transform-origin:left;
+}
+
+/* =================================================================== */
+/* SHARED small parts                                                  */
+/* =================================================================== */
+.filmbtn{
+  display:inline-flex; align-items:center; gap:14px;
+  padding:11px 12px 11px 22px;
+  border:1px solid rgba(197,157,88,.55);
+  border-radius:100px;
+  color:var(--oat);
+  font-size:11px; letter-spacing:.11em; text-transform:uppercase;
+  font-weight:600;
+  backdrop-filter:blur(8px);
+  transition:border-color .4s, background .4s;
+}
+.filmbtn i{
+  width:26px; height:26px; border-radius:50%;
+  background:var(--gold); color:var(--ink);
+  display:grid; place-items:center;
+  font-size:8px; padding-left:2px;
+  transition:transform .45s var(--ease);
+}
+.filmbtn:hover{ border-color:var(--gold); background:rgba(197,157,88,.12); }
+.filmbtn:hover i{ transform:scale(1.14); }
+
+/* counters ---------------------------------------------------------- */
+.stats{ display:flex; gap:clamp(20px,2.2vw,34px); flex-wrap:wrap; margin-top:34px; }
+.stats li{ display:flex; flex-direction:column; gap:2px; }
+.stats b{
+  font-family:var(--serif);
+  font-size:clamp(26px,3.4vw,44px);
+  line-height:1; font-weight:400;
+}
+.stats span{
+  font-family:var(--mono);
+  font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* reduced motion ---------------------------------------------------- */
+@media (prefers-reduced-motion:reduce){
+  .grain{ animation:none; }
+  /* No transitions at all, rather than very short ones. A .01ms
+     transition is still a running transition: GSAP re-reads computed
+     styles whenever ScrollTrigger refreshes, and mid-transition the
+     browser reports the value an element is leaving, so every scroll
+     reveal on the page re-recorded "opacity 0" as its end state and the
+     page came up blank. Nothing here listens for transitionend. */
+  *, *::before, *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition:none !important;
+  }
+}
+
+/* mobile nav -------------------------------------------------------- */
+@media (max-width:860px){
+  .nav__group--left .nav__pill:nth-child(n+2){ display:none; }
+  .nav__group--right .nav__pill:not(.nav__pill--solid){ display:none; }
+  .railtab{ display:none; }
+  .nav__mark{ height:21px; }
+  .nav{ gap:10px; }
+  .nav__group{ min-width:0; }
+  .nav__pill{ padding:8px 13px; font-size:10px; letter-spacing:.07em; }
+}
+/* A phone cannot hold a pill, the wordmark and a pill. The nav came out at
+   460px on a 390px screen, and because it is fixed, mobile Chrome zoomed the
+   whole page out to 496px to fit it — the hero title sized itself to that
+   wider page and ran off both edges, and Subscribe was cut in half. Below
+   this width the nav is the house and the one action. */
+@media (max-width:480px){
+  .nav__group--left .nav__pill{ display:none; }
+}

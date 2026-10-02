@@ -1,0 +1,757 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>ROAST LAB — Single Origin Coffee, Grown High &amp; Roasted Slow</title>
+<meta name="description" content="ROAST LAB is a single-origin coffee house. Highland-grown arabica, slow-roasted in small batches, traced from cherry to cup." />
+<meta name="theme-color" content="#214639" />
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,700;1,6..96,400;1,6..96,500&family=JetBrains+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="assets/vendor/lenis.css" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/sections.css" />
+<link rel="stylesheet" href="assets/css/chamber.css" />
+</head>
+<body class="is-loading">
+
+<!-- ============ THE LOGO ============
+     Traced from the supplied artwork into vector paths, one per letter, and
+     defined once here. The nav, the footer, the hero and the loader all draw
+     it with <use>, and the cups print it from these same paths — so there is
+     one logo on the page, sharp at every size, coloured by its context. -->
+<svg class="rl-sprite" aria-hidden="true" focusable="false" width="0" height="0"><defs><g id="rl-letters" fill="currentColor" fill-rule="evenodd"><path id="rl-0" fill="currentColor" fill-rule="evenodd" d="M35.8 175.8C35.3 175.3 35.2 174.9 35.2 100.5C35.3 48.3 35.3 25.6 35.5 25.1C35.7 24.6 36.1 24.2 36.5 24C37 23.8 45.7 23 51.9 22.6C65.9 21.7 76.7 21.4 89.8 21.4C105.2 21.4 109.8 21.6 120.6 23C123.8 23.4 129.8 25.1 131.9 26.2C135.7 28.1 136.7 29.9 138.2 36.9C139.8 44.8 140.3 51.2 140.3 64.2C140.4 76.3 140 81.7 138.8 89.2C138 94.5 137.4 96.9 136.5 98.8C135.7 100.4 135.3 100.8 133.6 102.1C131.2 103.8 125.2 107.1 120.6 109.2C118.8 110.1 117.2 110.8 117.1 110.8C116.6 110.8 116 111.7 116 112.3C116 112.8 117.1 115.2 123.8 129.8C125.2 132.7 126.8 136.3 127.4 137.7C128 139.2 128.9 141.1 129.4 142C129.8 142.9 130.5 144.3 130.8 145.1C131.2 146 132 147.7 132.6 149C134.2 152.4 137.1 158.7 137.6 159.8C137.8 160.2 138.2 161.2 138.6 162C138.9 162.8 139.5 164 139.9 164.8C141 167.2 140.5 167.6 135.9 168.5C135.1 168.6 127.3 170.1 118.6 171.6C110 173.2 102.5 174.6 102 174.7C101.5 174.9 100.5 175 99.8 175.1C99 175.2 97.3 175.5 96 175.8C92.5 176.5 92.1 176.2 91.5 173.5C91.4 172.7 90.9 170.5 90.5 168.5C89.5 163.6 89.6 164.1 88.7 159.8C88.3 157.6 87.8 154.8 87.5 153.5C86.8 150.1 83.8 134.9 83.5 133.1C83.3 132.3 83 130.6 82.7 129.4C82.5 128.1 82 125.6 81.6 123.8C80.8 119.5 80.5 119 79.4 119C78.1 119 75.4 120.5 75.2 121.3C75.1 121.6 75.2 126.1 75.3 131.3C75.4 136.4 75.6 147.7 75.7 156.4C76 171.4 76 172.1 75.6 172.6C75.1 173 75.1 173 57.4 174.6C55 174.8 52.1 175.1 50.9 175.1C49.6 175.2 46.4 175.5 43.8 175.8C37.4 176.4 36.4 176.4 35.8 175.8ZM79.8 84.7C81.5 84.6 84.2 84.4 85.7 84.3C88.2 84.1 88.7 84 89 83.5C89.5 82.9 89.6 81.9 90.1 74C90.3 70.6 90.7 65.5 90.9 62.6C91.4 55.6 91.4 54.2 90.8 53.7C90.3 53.2 90.3 53.2 81.1 51.1C75.6 49.9 74.9 49.9 74.6 51.1C74.5 51.7 74.2 70.5 74.2 78.5C74.2 85.7 73.8 85.2 79.8 84.7Z"/><path id="rl-1" fill="currentColor" fill-rule="evenodd" d="M190 173.7C178.6 172.6 171.8 171.3 164.3 168.7C159.8 167.1 155.5 164.8 153.8 162.9C152.7 161.6 151.4 159.3 150.9 157.6C147.9 147.9 147.6 113.5 150.3 86.4C151 78.9 152.4 68.1 153.3 63.4C153.5 61.9 153.9 59.6 154.1 58.4C154.7 55.1 157.1 45.4 158.1 42.5C159.9 37.5 161.6 34.4 163.6 32.8C169.6 27.8 180.1 24.6 195.8 23C203.8 22.1 214.4 22.6 223 24.2C226.3 24.8 233 27.1 235.4 28.5C239.1 30.6 241.9 33.4 243.2 36.2C245.8 42 246.7 51.5 246.7 71.1C246.8 82.9 245.7 104.3 244.8 112.8C244.6 113.9 244.3 117.3 244 120.4C243.7 123.4 243.4 126.8 243.2 128C243.1 129.2 242.8 131.5 242.6 133.1C242.2 137.1 241.3 143.6 241 145.2C240.9 146 240.5 148.1 240.3 149.9C239.2 157 238.2 161.3 237.2 163.6C236.5 165.1 234.4 167.2 232.7 168.2C228.6 170.5 221 172.5 212.9 173.2C211.4 173.4 209.1 173.6 207.8 173.7C204.9 174 193 174 190 173.7ZM204 135.1C206.5 134.8 208.5 134.1 209.5 133.2C211.9 130.9 213.3 120.8 214.3 98.1C214.6 89.6 214.4 74.8 213.9 71.6C213.2 67.2 211.5 65.2 207.9 64.4C203.3 63.4 199.8 63.7 195.4 65.2C190.3 67 189.4 68.1 188 75.1C185.3 88.5 183.8 118.6 185.5 127.1C185.9 129.1 186.2 129.6 187.6 131C189.9 133.2 194 134.7 198.7 135.2C201.5 135.5 201.4 135.5 204 135.1Z"/><path id="rl-2" fill="currentColor" fill-rule="evenodd" d="M281.2 176.2C272.1 175.7 263.9 172.8 260.9 169.2C258 165.5 255.8 157.2 255 146C254.5 140.1 254.8 124.2 255.5 117.8C256.9 103.2 260.1 90.3 263 87.3C265.3 84.8 273.2 83.8 288.1 84.1C296.5 84.2 299 84.4 306.9 85.6C307.8 85.8 308 85.7 308.5 85.3C309 84.8 309 84.6 308.9 81.6C308.7 78.8 308.5 75 307.9 68.2C307.7 66.6 307.2 63.2 306.7 60.8C306.1 57.9 305.3 56.8 302.5 55.4C298.1 53.2 292 53.2 290.7 55.5C290.4 56.2 290.4 57.9 291 61.2C291.5 64.4 291.6 65.9 291.3 66.5C290.9 67.1 288.3 67.2 281.9 67C268.6 66.5 262.9 64.9 261.7 61.3C261.3 60.2 261.6 52.2 262.1 47.9C262.9 41.3 263.7 37.7 265.2 33.7C266.4 30.4 269.8 28.4 276.1 27C277.4 26.7 279.2 26.4 280.1 26.1C286.2 24.8 300.8 24.1 310.4 24.9C327.7 26.1 339.4 29.7 344.2 35.2C347 38.3 348.6 43.9 349.7 53.5C350.8 62.7 350.7 87.9 349.5 100.2C349.4 101.7 349.2 103.9 349.1 105.2C349 106.6 348.7 110.7 348.3 114.5C348 118.3 347.6 122.8 347.5 124.6C347.4 126.4 347.2 128.2 347.1 128.5C347.1 128.8 346.7 131.8 346.4 135.1C346 138.4 345.6 142.1 345.5 143.2C345.4 144.4 345.2 146.2 345 147.1C344.1 154 343.4 158.9 343 161.9C342.7 163.8 342.4 166.2 342.2 167.2C341.9 169.7 341.6 170.1 339.8 170.6C337.9 171.1 332.6 172.1 328 172.7C326 173 323.6 173.4 322.8 173.5C308.7 175.8 292 176.9 281.2 176.2ZM304.2 144.9C306.4 144.2 308.1 137.7 309.1 126.5C309.5 121.3 309.5 120.1 308.7 119.4C307.6 118.2 304.8 117.4 301.1 117.3C297.9 117.2 297.8 117.2 296.5 117.9C295.2 118.6 295.1 118.7 294.7 120C293.4 124.1 292.3 134 292.8 138.1C293.2 141.8 294 143 296.9 144.3C299.1 145.2 302.5 145.5 304.2 144.9Z"/><path id="rl-3" fill="currentColor" fill-rule="evenodd" d="M411.9 175.7C410.2 175.6 405.8 175.4 402.1 175.3C398.4 175.1 394.1 174.9 392.6 174.8C391.1 174.6 388.7 174.5 387.2 174.4C385.8 174.3 383.4 174.1 382 173.9C380.6 173.7 378.6 173.5 377.6 173.4C373.7 173 366.4 171.5 365.3 170.8C364.5 170.3 364.3 169.9 363.8 167C362.9 162.5 362.3 156.6 361.5 145.8C360.2 127.9 360 123.4 360.6 122.3C360.8 121.8 361.3 121.4 361.7 121.3C363 121 384.1 123.3 385.9 124C387 124.5 387.2 125 388 130.3C388.4 133.1 388.8 136.1 388.9 136.9C389.1 138.7 389.5 139.9 390.2 140.2C390.7 140.5 398.3 143 410.3 146.9C413.7 148 414.1 148 414.2 146.5C414.3 145.3 414 143 413.4 139.8C413.2 138.6 412.9 136.8 412.8 135.8C412.6 134.7 412.2 131.7 411.8 129.1C411.4 126.5 410.9 123 410.6 121.4C409.5 113.3 410 113.8 402.9 113.3C399.5 113 398 112.8 390.9 112C378.7 110.6 369.3 109.2 366.6 108.4C363.2 107.3 362.6 106.6 362.2 103.3C361.6 98.4 361.5 95.8 361.2 84.2C360.6 56.6 362 30.1 364.3 25.3C365.5 22.9 367.3 22.5 379 22.3C389.5 22.2 403.6 22.7 421.9 23.9C434.1 24.7 440.5 25.4 446.5 26.5C450.7 27.3 451.4 27.9 452.8 31.1C454.2 34.3 455.3 39.2 456.5 47.8C456.8 49.7 457.1 52 457.3 52.8C457.4 53.5 457.6 55.8 457.7 57.8C457.9 59.7 458.2 63.6 458.4 66.4C458.9 73.1 458.9 73.1 455 73.4C454 73.4 450.4 73.8 447.1 74.1C434.2 75.5 432.8 75.6 432.1 75.1C431.8 74.9 431.5 74.5 431.4 74.2C431.2 73.6 430.4 64.6 429.9 57.9C429 47.6 428.9 46.7 428.3 46.1C427.7 45.6 426.2 45.7 421.9 46.4C420.6 46.6 417.5 47 415 47.4C407.9 48.3 406.7 48.6 406.1 49.1C405.4 49.7 405.5 49.4 404 62.6C403.7 65.2 403.4 68.1 403.2 69C402.9 71.3 401.8 81.7 401.6 84.4C401.4 87.6 401 87.4 409.6 88.5C411.7 88.8 414.5 89.2 415.9 89.4C417.2 89.6 419.9 90 421.9 90.2C423.8 90.5 426.4 90.9 427.8 91.1C434.3 92.1 439.8 93 441.4 93.4C442.3 93.6 444.3 94 445.8 94.3C452.5 95.6 453.7 96.3 454.2 99.1C454.9 102.5 455 103.6 455.4 108.7C456.8 127.4 456.8 158.8 455.5 166.9C454.8 171.2 454.3 172.5 453.1 173.3C450.2 175.3 442.8 176 426.6 176C420.1 175.9 413.5 175.8 411.9 175.7Z"/><path id="rl-4" fill="currentColor" fill-rule="evenodd" d="M488.5 177.7C488 177.3 488 177 488.1 175.7C488.2 174.8 488.5 169.9 488.9 164.8C489.2 159.6 489.7 153.5 489.9 151.1C490.1 148.8 490.3 145.9 490.4 144.8C490.8 137.9 491.6 127.2 491.9 123C492.4 115.9 493 108.3 493.4 101.8C493.6 98.7 493.8 95 494 93.6C494.1 92.2 494.3 90 494.4 88.6C494.4 87.2 494.6 84.8 494.8 83.1C495.1 79.5 495 78.3 494.2 78C493.9 77.9 491.9 78 489.8 78.1C487.6 78.3 484.2 78.6 482.1 78.7C480.1 78.9 477.2 79.1 475.8 79.3C467.1 80.1 464.5 80.2 463.9 79.6C463.4 79.1 463.4 77.6 464 65.9C464.3 60.6 464.7 51.5 465 45.5C466.1 22.4 466 23.2 466.5 22.5C466.9 21.9 467 21.9 470 21.9C473.5 21.9 487.8 22.3 503.4 22.9C514.7 23.3 530 23.8 547 24.4C561.8 24.8 562.1 24.9 562.9 25.4C563.5 25.7 563.5 25.9 563.5 28.4C563.5 29.8 563.4 32.4 563.3 34C563.1 35.7 562.9 40.3 562.8 44.1C562.6 48 562.3 53.9 562.1 57.4C561.9 60.8 561.7 65.8 561.6 68.4C561.5 71 561.4 74.6 561.2 76.5C560.9 80.9 560.9 80.9 557.8 80.6C556.5 80.6 554.9 80.4 554.3 80.2C551.8 79.7 536 77.5 535.6 77.7C535.1 77.9 534.9 78.8 535.1 81.2C535.4 85.2 536.5 97.1 536.9 100.4C537.1 102.2 537.4 105.1 537.5 106.9C537.6 108.7 537.9 111.2 538 112.6C538.6 118.6 539.1 123 539.5 127.8C539.8 130.6 540.3 136.4 540.7 140.8C541.2 145.1 541.7 150.7 541.9 153.2C542.1 155.8 542.3 158.3 542.4 158.9C542.9 162.9 543.2 168.5 543 169.1C542.5 170.1 541.9 170.2 536.4 171C535.4 171.1 532.5 171.6 530 172C527.5 172.4 524.8 172.8 524.1 172.9C523.4 173 521.2 173.3 519.1 173.6C517.1 174 513.5 174.5 511.2 174.9C509 175.2 506.6 175.6 505.9 175.7C505.2 175.9 503.9 176 503.1 176.1C502.3 176.2 500.9 176.4 500.1 176.6C499.3 176.8 497.8 177 496.9 177.1C495.9 177.2 494.4 177.4 493.6 177.6C492.8 177.8 491.4 178 490.6 178.1C489.2 178.2 488.9 178.2 488.5 177.7Z"/><path id="rl-5" fill="currentColor" fill-rule="evenodd" d="M627.8 177.2C627.5 177.1 627.2 176.8 627.1 176.6C626.9 176 626.8 166.5 626.5 133C626.4 115.3 626.1 87 626 70.1C625.9 53.2 625.7 36.5 625.7 33C625.7 28.5 625.7 26.5 626 26.1C626.4 25.3 626.7 25.3 638.5 25.1C644.1 25 653.4 24.9 659.2 24.8C666 24.6 670.1 24.7 670.6 24.8C671.7 25.2 671.7 25.3 670.6 36.4C670.4 38.4 670 43.2 669.6 46.9C669.3 50.6 668.9 54.8 668.8 56.1C668.6 57.5 668.3 60.5 668.1 62.9C667.9 65.2 667.5 69.1 667.2 71.5C667 73.9 666.7 76.7 666.6 77.6C666.5 79.5 666 84.7 665.4 90.8C665.2 92.9 664.9 96 664.8 97.6C664.6 99.3 664.2 104 663.8 108.1C663.4 112.2 662.8 118.1 662.5 121.1C662.2 124.2 661.8 128.3 661.6 130.4C661 136.2 660.3 145.1 660.4 145.3C660.9 146.1 661.9 145.9 668.2 144.4C671.7 143.5 676.6 142.3 679 141.8C688.5 139.5 691.9 138.6 699.6 136.7C704 135.6 708.1 134.7 708.7 134.7C710.6 134.8 710.5 133.7 710.5 153.5L710.5 171.1 L709.9 171.7C709.5 172 709 172.3 708.7 172.3C708.4 172.3 705.6 172.4 702.6 172.6C699.6 172.8 695.2 173.1 692.9 173.2C690.5 173.4 687.3 173.6 685.8 173.8C684.2 173.9 680.7 174.1 678.1 174.3C675.5 174.4 672.1 174.6 670.6 174.7C669.1 174.9 665.9 175.1 663.4 175.2C658.6 175.5 650.2 176.1 643.9 176.5C641.8 176.7 638.4 176.9 636.2 177C634 177.1 631.4 177.3 630.3 177.4C629.1 177.4 628.2 177.4 627.8 177.2Z"/><path id="rl-6" fill="currentColor" fill-rule="evenodd" d="M740.1 176.2C732.1 175.8 724.6 173.6 720.8 170.6C717.5 167.9 715.4 161.7 713.8 149.5C713.3 145.3 713.2 127.9 713.7 121.9C714.1 117.8 714.9 110.9 715.2 108.9C715.4 108.2 715.5 107.1 715.6 106.4C716.2 101.9 718.7 92.1 719.8 89.9C720.9 87.8 721.8 86.8 723.3 86.1C726.8 84.5 734.6 83.9 746.8 84.1C755.9 84.2 758.2 84.4 764.7 85.5C767.2 85.9 767.5 85.7 767.5 83.7C767.5 80.8 766.5 68.4 766 64.8C765.3 59.2 764.6 57.7 762 55.9C759.3 54 753.6 53.2 751 54.3C748.8 55.2 748.7 55.7 749.5 60.8C750.1 64.4 750.2 66.1 749.9 66.5C749.3 67 747 67.2 741.1 67C731.6 66.7 726.8 65.9 723.1 64.3C720.3 63 719.8 61.7 720.1 55.5C720.3 51 721.1 44.1 722.1 39.5C723.2 34.5 724.3 31.9 726.1 30.5C728.1 28.9 734 26.9 739 26.1C740.2 25.9 741.4 25.7 741.7 25.6C743.2 25.3 754.4 24.5 758.5 24.5C763.1 24.5 772.4 25 775.9 25.5C790.6 27.5 799.3 30.7 803.1 35.6C804.7 37.6 805 38.1 806.1 41.8C808.3 48.5 808.9 55.4 808.9 74.1C808.9 88.7 808.7 93.6 807.6 106.2C807.4 108.7 807.2 112 807 113.6C806.4 121.8 804.3 141.6 803.5 147.9C802.9 152.1 802.8 153.1 801.4 163.1C800.3 170.8 800.6 170.3 796.2 171.1C791.6 172 784.1 173.2 774 174.6C772.6 174.8 769.7 175.1 767.8 175.3C765.8 175.4 763.4 175.6 762.6 175.8C759 176.3 746.7 176.6 740.1 176.2ZM763 144.8C764.2 144.2 765.3 141.9 766 138.6C767.5 131.3 768.4 121.6 767.7 119.9C766.9 118.2 763.2 117.1 758.6 117.3C754.4 117.5 753.6 118.1 752.8 121.7C751.8 126.1 751.2 132 751.3 136C751.6 142.1 752.2 143.3 756.3 144.5C759.2 145.4 761.7 145.5 763 144.8Z"/><path id="rl-7" fill="currentColor" fill-rule="evenodd" d="M844.8 175.1C834.9 174.8 826.7 174.3 826.1 173.9C825.4 173.4 825.3 173 825 166.5C824.7 160.8 824.5 157 823.7 143.1C823.5 138.3 823.1 132.2 823 129.6C822.9 127 822.6 122.8 822.5 120.4C822.2 114.7 821.5 102.3 821.4 98.2C821.3 96.5 821 91.4 820.7 86.8C820.5 82.1 820.1 75.1 819.9 71C819.7 66.9 819.3 60.7 819.1 57.1C818.9 53.5 818.6 47.3 818.4 43.2C817.6 27.9 817.6 28.5 818.5 28C819.4 27.5 830.1 25.6 834.8 25.1C835.5 25 836.7 24.9 837.4 24.7C839.9 24.3 854.9 22.5 862.1 21.8C869.9 21 885.7 20.7 890 21.3C894.2 21.8 897.6 22.5 898.9 23.2C903.1 25.5 904.9 28.9 906.8 38.5C908.3 46.2 909.4 59.9 909.2 69.9C909 80.7 907.9 84.5 904.5 86.7C902.2 88.2 900.4 88.6 893.9 89.4C892 89.6 890 89.9 889.4 90C888.6 90.3 888.5 90.3 888.8 90.7C889 90.9 891.5 92 894.3 93.1C900.4 95.6 904.1 97.6 906.9 100C910.1 102.7 911.4 105.3 912.5 110.8C913.1 113.4 913.1 114.2 913.1 123C913.1 133 913 135.4 911.5 147C910.2 157.5 908.5 162.8 905.8 165.7C903.5 168.1 899.5 169.9 893.2 171.5C888.9 172.6 878.6 174 869.8 174.6C864.6 175 850.6 175.3 844.8 175.1ZM863.2 148.4C868.3 147.9 872.4 147 873.8 146.1C875 145.3 875.4 144.3 875.8 142C876.3 138.3 875.9 121.1 875.3 116.6C875.1 115.8 874.8 113.9 874.6 112.4C873.8 107 872.9 106.1 868.6 106.2C865.5 106.2 856.6 107.7 855.5 108.4C854.3 109.1 854.2 109.8 854.5 114.8C854.6 117.2 854.8 121.7 854.9 124.8C855 127.8 855.2 134 855.4 138.5C855.6 143 855.7 146.9 855.7 147.2C855.7 147.5 856 148 856.2 148.2C856.9 148.9 857.4 148.9 863.2 148.4ZM859.4 78.3C866.3 76.9 869.4 75.4 870 73.2C870.2 72.6 870.4 71.7 870.6 71.2C871 69.9 871.1 54.4 870.8 51.6C870.2 47.2 869.4 45.7 867.1 45.2C865.5 44.9 856 45 855 45.5C854.6 45.6 854.2 46 854 46.2C853.8 46.6 853.7 51.3 853.7 62C853.8 77.3 853.8 78 854.6 78.6C855.1 78.9 856.8 78.8 859.4 78.3Z"/></g></defs></svg>
+
+<!-- ============ PRELOADER ============ -->
+<div class="loader" id="loader" aria-hidden="true">
+  <!-- The ink, with a hole in it. The cup you can see through the hole is
+       the hero's own cup, already on stage; at the end this opens out and
+       there is nothing to hand over. -->
+  <div class="loader__iris" id="loaderIris"></div>
+
+  <svg class="loader__ring" id="loaderRing" viewBox="0 0 200 200" aria-hidden="true">
+    <circle class="loader__track" cx="100" cy="100" r="92" />
+    <circle class="loader__arc" id="loaderArc" cx="100" cy="100" r="92" />
+    <g class="loader__ticks" id="loaderTicks"></g>
+  </svg>
+
+  <div class="loader__inner">
+    <div class="loader__mark">
+      <span class="loader__word">
+        <b><svg class="rl-l" viewBox="33.8 19.2 113 160.5" aria-hidden="true" focusable="false"><use href="#rl-0"/></svg></b><b><svg class="rl-l" viewBox="146.8 19.2 106.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-1"/></svg></b><b><svg class="rl-l" viewBox="253.2 19.2 105.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-2"/></svg></b><b><svg class="rl-l" viewBox="358.8 19.2 103.2 160.5" aria-hidden="true" focusable="false"><use href="#rl-3"/></svg></b><b><svg class="rl-l" viewBox="462 19.2 162 160.5" aria-hidden="true" focusable="false"><use href="#rl-4"/></svg></b><b><svg class="rl-l" viewBox="624 19.2 87.8 160.5" aria-hidden="true" focusable="false"><use href="#rl-5"/></svg></b><b><svg class="rl-l" viewBox="711.8 19.2 104.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-6"/></svg></b><b><svg class="rl-l" viewBox="816.2 19.2 98.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-7"/></svg></b>
+      </span>
+    </div>
+    <div class="loader__meta">
+      <span class="mono" id="loaderPct">00</span>
+      <i class="loader__dot" aria-hidden="true"></i>
+      <span class="mono" id="loaderStage">GRINDING</span>
+    </div>
+    <span class="loader__hint mono" id="loaderHint">DRAG THE CUP</span>
+  </div>
+</div>
+
+<!-- ============ CURSOR ============ -->
+<div class="cursor" id="cursor" aria-hidden="true">
+  <div class="cursor__dot"></div>
+  <div class="cursor__ring"><span class="cursor__label mono"></span></div>
+</div>
+
+<!-- ============ GRAIN + VIGNETTE ============ -->
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ============ THE BEAN FIELD ============
+     One fixed WebGL layer that runs the length of the page. It sits above
+     each section's background and below its copy, so the beans travel
+     through the site rather than living in one box. -->
+<canvas id="beanField" aria-hidden="true"></canvas>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <nav class="nav__group nav__group--left" aria-label="Primary">
+    <a class="nav__pill" href="#manifesto" data-cursor="link">Origin</a>
+    <a class="nav__pill" href="#roasts" data-cursor="link">Roasts</a>
+    <a class="nav__pill" href="#collection" data-cursor="link">Collection</a>
+  </nav>
+
+  <a class="nav__brand" href="#hero" aria-label="ROAST LAB home" data-cursor="link">
+    <svg class="rl-logo nav__mark" viewBox="33.8 19.2 881 160.5" aria-hidden="true" focusable="false"><use href="#rl-0"/><use href="#rl-1"/><use href="#rl-2"/><use href="#rl-3"/><use href="#rl-4"/><use href="#rl-5"/><use href="#rl-6"/><use href="#rl-7"/></svg>
+  </a>
+
+  <div class="nav__group nav__group--right">
+    <a class="nav__pill" href="#brew" data-cursor="link">Brew Guide</a>
+    <a class="nav__pill nav__pill--solid" href="#cta" data-cursor="link">Subscribe</a>
+  </div>
+</header>
+
+<!-- side rail, like the reference's edge tab -->
+<button class="railtab" id="railtab" type="button" data-cursor="drag">
+  <span>Roast Studio</span><i>+</i>
+</button>
+
+<!-- scroll progress rail -->
+<div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+
+<main id="smooth-content">
+
+  <!-- ==================================================================
+       01 · HERO
+       ================================================================== -->
+  <section class="hero" id="hero" data-theme="dark">
+    <!-- the lit pane sits UNDER the bean canvas; the matte sits over it -->
+    <div class="hero__pane" aria-hidden="true"></div>
+
+    <div class="hero__stage" aria-hidden="true">
+      <div class="hero__glow"></div>
+      <div class="hero__scrim"></div>
+      <!-- the matte: ink everywhere except the window, which opens on scroll -->
+      <div class="hero__mask" id="heroMask"></div>
+    </div>
+
+    <!-- an invisible grab area over the cup, so it can be spun by hand -->
+    <div class="hero__grab" id="heroGrab" aria-hidden="true"></div>
+
+    <div class="hero__ui">
+      <p class="hero__tag">
+        <span>Highland arabica, picked by hand</span>
+        <span>and roasted in ten-kilo batches.</span>
+      </p>
+
+      <button class="filmbtn" type="button" data-cursor="play">
+        <span>Watch the Harvest</span>
+        <i aria-hidden="true">&#9654;</i>
+      </button>
+    </div>
+
+    <h1 class="hero__title" id="heroTitle" aria-label="ROAST LAB">
+      <span class="clip"><span class="ch"><svg class="rl-l" viewBox="33.8 19.2 113 160.5" aria-hidden="true" focusable="false"><use href="#rl-0"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="146.8 19.2 106.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-1"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="253.2 19.2 105.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-2"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="358.8 19.2 103.2 160.5" aria-hidden="true" focusable="false"><use href="#rl-3"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="462 19.2 162 160.5" aria-hidden="true" focusable="false"><use href="#rl-4"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="624 19.2 87.8 160.5" aria-hidden="true" focusable="false"><use href="#rl-5"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="711.8 19.2 104.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-6"/></svg></span></span><span class="clip"><span class="ch"><svg class="rl-l" viewBox="816.2 19.2 98.5 160.5" aria-hidden="true" focusable="false"><use href="#rl-7"/></svg></span></span>
+    </h1>
+
+    <div class="hero__cue mono" aria-hidden="true">
+      <span>SCROLL</span><i></i>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       02 · MANIFESTO
+       ================================================================== -->
+  <section class="manifesto" id="manifesto" data-theme="light">
+    <div class="rules" aria-hidden="true"></div>
+
+    <div class="manifesto__mark">
+      <svg viewBox="0 0 220 60" aria-hidden="true">
+        <path id="sipPath" d="M8 44C48 14 96 6 140 16c30 7 48 20 70 12" fill="none" stroke="currentColor" stroke-width="1" />
+        <path d="M120 22c14-9 30-13 46-11" fill="none" stroke="currentColor" stroke-width=".8" opacity=".5"/>
+      </svg>
+      <em>Lot 04 · Yirga Highlands</em>
+    </div>
+
+    <h2 class="manifesto__text" data-split="words">
+      Altitude does something to a coffee cherry — it slows the sugar, tightens the bean, and leaves behind an acidity you can taste from the first sip to the last of the cup.
+    </h2>
+
+    <span class="manifesto__label mono">OUR SEASON</span>
+  </section>
+
+  <!-- ==================================================================
+       03 · ALTITUDE (parallax highlands)
+       ================================================================== -->
+  <section class="altitude" id="altitude" data-theme="light">
+    <div class="rules" aria-hidden="true"></div>
+
+    <div class="altitude__copy">
+      <span class="eyebrow mono">THE GROWING SEASON</span>
+      <p>
+        Between October and February, when the highland nights drop to single
+        digits, our growers walk the terraces and take only the cherries that
+        have gone deep red. Nothing is stripped. Nothing is rushed. A picker
+        will pass the same tree five times in a season.
+      </p>
+      <ul class="stats">
+        <li><b class="count" data-to="2150" data-suffix=" m">0</b><span>Average altitude</span></li>
+        <li><b class="count" data-to="5" data-suffix="×">0</b><span>Selective passes</span></li>
+        <li><b class="count" data-to="10" data-suffix=" kg">0</b><span>Batch size</span></li>
+      </ul>
+    </div>
+
+    <div class="highlands" id="highlands" aria-hidden="true">
+      <div class="hl hl--sky"></div>
+      <div class="hl hl--haze"></div>
+      <!-- Sky and haze only. Every cut-out wave that used to sit here read as
+           a section divider — a shape ruled between two parts of a page —
+           rather than as distance. The depth now comes from the WebGL cloud
+           bank and the bean cyclone turning through it. -->
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       04 · ROASTS (expanding panels)
+       ================================================================== -->
+  <section class="roasts" id="roasts" data-theme="light">
+    <header class="roasts__head">
+      <h2 class="display">Our Roasts</h2>
+      <svg class="roasts__flourish" viewBox="0 0 260 40" aria-hidden="true">
+        <path d="M6 30C60 8 120 2 178 10c28 4 52 12 76 10" fill="none" stroke="currentColor" stroke-width=".9"/>
+        <path d="M40 34c48-16 104-22 158-16" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/>
+      </svg>
+    </header>
+
+    <div class="panels" id="panels">
+      <article class="panel is-open" data-roast="0" style="--p1:#E6C79A;--p2:#B8823F;--p3:#7B4A1E" data-cursor="open">
+        <div class="panel__art" aria-hidden="true"></div>
+        <div class="panel__vert"><span>Cascara Morning</span></div>
+        <div class="panel__body">
+          <h3>Cascara<br/>Morning</h3>
+          <div class="panel__meta mono"><span>₹ 1,180 / 250g</span><i></i><span>LIGHT ROAST</span></div>
+          <p>Washed Yirga lot dried on raised beds. Jasmine, white peach and a
+             lime-leaf finish that stays bright as it cools.</p>
+          <div class="panel__notes">
+            <span>Jasmine</span><span>White Peach</span><span>Lime Leaf</span>
+          </div>
+          <a class="link" href="#lab" data-cursor="link">Open in the Studio</a>
+          <div class="panel__meter" aria-hidden="true">
+            <span class="panel__meter-scale"><i style="--pct:16%"></i></span>
+            <em class="mono">LIGHT</em>
+          </div>
+          <button class="roastbtn" type="button" data-roast-open="0" data-cursor="roast">
+            <span class="roastbtn__ring" aria-hidden="true"></span>
+            <span class="roastbtn__label">Roast this lot</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="panel" data-roast="1" style="--p1:#D8A96A;--p2:#9A5F2A;--p3:#5B3015" data-cursor="open">
+        <div class="panel__art" aria-hidden="true"></div>
+        <div class="panel__vert"><span>Terrace No. 7</span></div>
+        <div class="panel__body">
+          <h3>Terrace<br/>No.&nbsp;7</h3>
+          <div class="panel__meta mono"><span>₹ 1,340 / 250g</span><i></i><span>MEDIUM–LIGHT</span></div>
+          <p>Honey-processed and rested sixteen days. Apricot and brown sugar
+             over a soft, tea-like body.</p>
+          <div class="panel__notes">
+            <span>Apricot</span><span>Brown Sugar</span><span>Black Tea</span>
+          </div>
+          <a class="link" href="#lab" data-cursor="link">Open in the Studio</a>
+          <div class="panel__meter" aria-hidden="true">
+            <span class="panel__meter-scale"><i style="--pct:36%"></i></span>
+            <em class="mono">MEDIUM-LIGHT</em>
+          </div>
+          <button class="roastbtn" type="button" data-roast-open="1" data-cursor="roast">
+            <span class="roastbtn__ring" aria-hidden="true"></span>
+            <span class="roastbtn__label">Roast this lot</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="panel" data-roast="2" style="--p1:#C08B4E;--p2:#7E451C;--p3:#3E200E" data-cursor="open">
+        <div class="panel__art" aria-hidden="true"></div>
+        <div class="panel__vert"><span>Canopy Blend</span></div>
+        <div class="panel__body">
+          <h3>Canopy<br/>Blend</h3>
+          <div class="panel__meta mono"><span>₹ 1,090 / 250g</span><i></i><span>MEDIUM</span></div>
+          <p>Our house pour. Two farms, one drum, roasted to the edge of first
+             crack for cocoa, hazelnut and dried fig.</p>
+          <div class="panel__notes">
+            <span>Cocoa</span><span>Hazelnut</span><span>Dried Fig</span>
+          </div>
+          <a class="link" href="#lab" data-cursor="link">Open in the Studio</a>
+          <div class="panel__meter" aria-hidden="true">
+            <span class="panel__meter-scale"><i style="--pct:58%"></i></span>
+            <em class="mono">MEDIUM</em>
+          </div>
+          <button class="roastbtn" type="button" data-roast-open="2" data-cursor="roast">
+            <span class="roastbtn__ring" aria-hidden="true"></span>
+            <span class="roastbtn__label">Roast this lot</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="panel" data-roast="3" style="--p1:#9C6836;--p2:#5A2E12;--p3:#2A1509" data-cursor="open">
+        <div class="panel__art" aria-hidden="true"></div>
+        <div class="panel__vert"><span>Night Terminal</span></div>
+        <div class="panel__body">
+          <h3>Night<br/>Terminal</h3>
+          <div class="panel__meta mono"><span>₹ 1,260 / 250g</span><i></i><span>DARK ROAST</span></div>
+          <p>Built for espresso and for milk. Dark chocolate, molasses and a
+             long, low finish that survives a flat white.</p>
+          <div class="panel__notes">
+            <span>Dark Chocolate</span><span>Molasses</span><span>Walnut</span>
+          </div>
+          <a class="link" href="#lab" data-cursor="link">Open in the Studio</a>
+          <div class="panel__meter" aria-hidden="true">
+            <span class="panel__meter-scale"><i style="--pct:82%"></i></span>
+            <em class="mono">DARK</em>
+          </div>
+          <button class="roastbtn" type="button" data-roast-open="3" data-cursor="roast">
+            <span class="roastbtn__ring" aria-hidden="true"></span>
+            <span class="roastbtn__label">Roast this lot</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="panel" data-roast="4" style="--p1:#7E512C;--p2:#40200D;--p3:#1B0E06" data-cursor="open">
+        <div class="panel__art" aria-hidden="true"></div>
+        <div class="panel__vert"><span>Cold Cellar</span></div>
+        <div class="panel__body">
+          <h3>Cold<br/>Cellar</h3>
+          <div class="panel__meta mono"><span>₹ 980 / 250g</span><i></i><span>COLD BREW</span></div>
+          <p>Coarse-ground for eighteen hours in the cellar. Sweet, thick and
+             almost sticky — no ice needed.</p>
+          <div class="panel__notes">
+            <span>Toffee</span><span>Date</span><span>Clove</span>
+          </div>
+          <a class="link" href="#lab" data-cursor="link">Open in the Studio</a>
+          <div class="panel__meter" aria-hidden="true">
+            <span class="panel__meter-scale"><i style="--pct:94%"></i></span>
+            <em class="mono">COLD BREW</em>
+          </div>
+          <button class="roastbtn" type="button" data-roast-open="4" data-cursor="roast">
+            <span class="roastbtn__ring" aria-hidden="true"></span>
+            <span class="roastbtn__label">Roast this lot</span>
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       05 · FOUNDER QUOTE
+       ================================================================== -->
+  <section class="quote" id="quote" data-theme="light">
+    <div class="rules" aria-hidden="true"></div>
+    <figure>
+      <blockquote data-split="lines">
+        <span class="quote__mark" aria-hidden="true">&ldquo;</span>
+        Eleven years in, the part that still gets me is how little we do. We
+        buy honestly, we roast carefully, and then we get out of the way. A
+        good coffee has already decided what it wants to taste like long
+        before it reaches our drum.
+      </blockquote>
+      <figcaption>
+        <svg class="sig" viewBox="0 0 180 46" aria-hidden="true">
+          <path d="M6 34c14-20 24-26 30-20s-4 24 2 26 16-14 22-24 10-12 12-6-6 20 0 22 14-10 20-18 12-10 14-4-2 16 4 16 18-8 24-14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <b>Amara Cano</b>
+        <span>Founder &amp; Head Roaster</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ==================================================================
+       06 · ROAST STUDIO (interactive 3D)
+       The brand is ROAST LAB now, so the section that used to share the
+       name is the Studio — one name on the page, meaning one thing.
+       ================================================================== -->
+  <section class="lab" id="lab" data-theme="dark">
+    <div class="lab__scrim" aria-hidden="true"></div>
+    <div class="lab__grab" id="labGrab" aria-hidden="true"></div>
+
+    <h2 class="lab__title">Roast<br/>Studio</h2>
+
+    <div class="lab__panel">
+      <span class="eyebrow mono">DIAL IT IN</span>
+      <p class="lab__lede">
+        Drag the roast curve. Every bean on the page comes from this lot, so
+        the whole field takes the roast with it. Drag the big one to spin it.
+      </p>
+
+      <label class="slider" for="roastRange">
+        <span class="slider__head mono"><b id="roastName">MEDIUM</b><em id="roastTemp">211°C · 11:20</em></span>
+        <input id="roastRange" type="range" min="0" max="100" value="50" step="1"
+               aria-label="Roast level" />
+        <span class="slider__scale mono"><i>LIGHT</i><i>MEDIUM</i><i>DARK</i></span>
+      </label>
+
+      <div class="bars" id="bars">
+        <div class="bar" data-key="acidity"><span>Acidity</span><i><b></b></i><em class="mono">0</em></div>
+        <div class="bar" data-key="body"><span>Body</span><i><b></b></i><em class="mono">0</em></div>
+        <div class="bar" data-key="sweet"><span>Sweetness</span><i><b></b></i><em class="mono">0</em></div>
+        <div class="bar" data-key="bitter"><span>Bitterness</span><i><b></b></i><em class="mono">0</em></div>
+      </div>
+
+      <p class="lab__note mono" id="roastNote">BEST AS FILTER · 1:16 · 94°C</p>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       07 · COLLECTION (pinned horizontal)
+       ================================================================== -->
+  <section class="collection" id="collection" data-theme="dark">
+    <div class="collection__bg" aria-hidden="true"><div class="collection__bgart"></div></div>
+    <canvas id="cardCanvas" class="collection__gl" aria-hidden="true"></canvas>
+
+    <div class="collection__track" id="collectionTrack">
+      <div class="collection__intro">
+        <span class="eyebrow mono">THE COLLECTION</span>
+        <h2 class="display">Four bags,<br/>one season.</h2>
+        <p>Everything we put out this harvest, in the order we'd drink it.
+           Keep scrolling — the shelf moves with you.</p>
+        <span class="mono collection__hint">SCROLL&nbsp;→</span>
+      </div>
+
+      <article class="card" data-tilt data-cursor="open" data-pour="0" tabindex="0" role="button" aria-label="Open Cascara Morning">
+        <div class="card__inner">
+          <div class="card__bag" style="--b1:#F0DCBE;--b2:#C99A5C">
+            <span class="card__seal"></span>
+            <span class="card__bed" aria-hidden="true"></span>
+            <b>CASCARA<br/>MORNING</b>
+            <i class="mono">LIGHT · WASHED</i>
+          </div>
+          <div class="card__text">
+            <h3>Cascara Morning</h3>
+            <p>Jasmine, white peach, lime leaf. The one we open the roastery with.</p>
+          </div>
+          <span class="card__coord mono">[ 06° 09′ N, 38° 12′ E ]</span>
+          <span class="card__cue mono" aria-hidden="true">Open the bag</span>
+        </div>
+      </article>
+
+      <article class="card" data-tilt data-cursor="open" data-pour="1" tabindex="0" role="button" aria-label="Open Terrace No. 7">
+        <div class="card__inner">
+          <div class="card__bag" style="--b1:#E7C48F;--b2:#A6682F">
+            <span class="card__seal"></span>
+            <span class="card__bed" aria-hidden="true"></span>
+            <b>TERRACE<br/>NO. 7</b>
+            <i class="mono">MED-LIGHT · HONEY</i>
+          </div>
+          <div class="card__text">
+            <h3>Terrace No. 7</h3>
+            <p>Apricot and brown sugar. Sixteen days of rest before it ships.</p>
+          </div>
+          <span class="card__coord mono">[ 06° 11′ N, 38° 15′ E ]</span>
+          <span class="card__cue mono" aria-hidden="true">Open the bag</span>
+        </div>
+      </article>
+
+      <article class="card" data-tilt data-cursor="open" data-pour="2" tabindex="0" role="button" aria-label="Open Canopy Blend">
+        <div class="card__inner">
+          <div class="card__bag" style="--b1:#D2A268;--b2:#7A431B">
+            <span class="card__seal"></span>
+            <span class="card__bed" aria-hidden="true"></span>
+            <b>CANOPY<br/>BLEND</b>
+            <i class="mono">MEDIUM · BLEND</i>
+          </div>
+          <div class="card__text">
+            <h3>Canopy Blend</h3>
+            <p>Cocoa, hazelnut, dried fig. Our house pour, roasted every Tuesday.</p>
+          </div>
+          <span class="card__coord mono">[ 06° 04′ N, 38° 02′ E ]</span>
+          <span class="card__cue mono" aria-hidden="true">Open the bag</span>
+        </div>
+      </article>
+
+      <article class="card" data-tilt data-cursor="open" data-pour="3" tabindex="0" role="button" aria-label="Open Night Terminal">
+        <div class="card__inner">
+          <div class="card__bag" style="--b1:#B07C46;--b2:#4A2510">
+            <span class="card__seal"></span>
+            <span class="card__bed" aria-hidden="true"></span>
+            <b>NIGHT<br/>TERMINAL</b>
+            <i class="mono">DARK · NATURAL</i>
+          </div>
+          <div class="card__text">
+            <h3>Night Terminal</h3>
+            <p>Dark chocolate and molasses. Built to hold its own under milk.</p>
+          </div>
+          <span class="card__coord mono">[ 05° 58′ N, 37° 54′ E ]</span>
+          <span class="card__cue mono" aria-hidden="true">Open the bag</span>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="collection__rail" aria-hidden="true">
+      <i id="collectionBar"></i>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       08 · JOURNEY
+       ================================================================== -->
+  <section class="journey" id="journey" data-theme="dark">
+    <div class="journey__hero">
+      <div class="journey__heroart" aria-hidden="true"></div>
+      <h2 class="journey__codes" id="journeyCodes"><span>ETH</span><i>—</i><span>YOU</span></h2>
+    </div>
+
+    <div class="journey__caption">
+      <div class="journey__cap-row mono">
+        <span><b>06° 09′ N, 38° 12′ E</b><em>Yirga Highlands</em></span>
+        <span class="right"><b>19° 04′ N, 72° 52′ E</b><em>The Roast Lab</em></span>
+      </div>
+      <h3 class="display">From cherry to cup</h3>
+      <p>Eleven weeks, four hands, one drum. Every bag carries the date it was
+         picked and the date it was roasted — nothing in between is a secret.</p>
+    </div>
+
+  </section>
+
+  <!-- ==================================================================
+       09 · BREW CALCULATOR
+       ================================================================== -->
+  <section class="brew" id="brew" data-theme="light">
+    <div class="rules" aria-hidden="true"></div>
+
+    <div class="brew__head">
+      <span class="eyebrow mono">USE THIS TOMORROW MORNING</span>
+      <h2 class="display">Brew&nbsp;Guide</h2>
+      <p>Pick a method and how much you want. We'll give you the dose, the
+         water, the grind and the timing — the same card we tape to the wall
+         at the roastery.</p>
+    </div>
+
+    <div class="brew__tool">
+      <div class="brew__methods" id="brewMethods" role="tablist" aria-label="Brew method">
+        <button class="method is-active" role="tab" aria-selected="true" data-method="v60" data-cursor="link">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24l-9 16h-6L8 10Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M20 26v6" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>V60</span>
+        </button>
+        <button class="method" role="tab" aria-selected="false" data-method="aero" data-cursor="link">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="13" y="8" width="14" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 15h14M20 30v4" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>AeroPress</span>
+        </button>
+        <button class="method" role="tab" aria-selected="false" data-method="press" data-cursor="link">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="12" y="12" width="16" height="20" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M20 12V6M14 18h12" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>French Press</span>
+        </button>
+        <button class="method" role="tab" aria-selected="false" data-method="espresso" data-cursor="link">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M10 14h20v8a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8v-8Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M30 17h4a4 4 0 0 1 0 8h-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Espresso</span>
+        </button>
+        <button class="method" role="tab" aria-selected="false" data-method="cold" data-cursor="link">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 10h14l-2 22H15L13 10Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M14 20h12" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Cold Brew</span>
+        </button>
+      </div>
+
+      <div class="brew__panelwrap">
+        <label class="brew__cups">
+          <span class="mono">SERVINGS</span>
+          <div class="stepper">
+            <button type="button" id="cupsDown" aria-label="Fewer servings" data-cursor="link">–</button>
+            <b id="cupsVal">2</b>
+            <button type="button" id="cupsUp" aria-label="More servings" data-cursor="link">+</button>
+          </div>
+        </label>
+
+        <div class="recipe" id="recipe">
+          <div class="recipe__row recipe__row--big">
+            <span class="mono" id="rCoffeeLabel">COFFEE</span><b id="rCoffee">30 g</b>
+          </div>
+          <div class="recipe__row recipe__row--big">
+            <span class="mono" id="rWaterLabel">WATER</span><b id="rWater">500 ml</b>
+          </div>
+          <div class="recipe__grid">
+            <div><span class="mono">RATIO</span><b id="rRatio">1:16.7</b></div>
+            <div><span class="mono">GRIND</span><b id="rGrind">Medium-fine</b></div>
+            <div><span class="mono">TEMP</span><b id="rTemp">94 °C</b></div>
+            <div><span class="mono">TIME</span><b id="rTime">3:00</b></div>
+          </div>
+          <ol class="recipe__steps" id="rSteps"></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       10 · CTA
+       ================================================================== -->
+  <section class="cta" id="cta" data-theme="dark">
+    <div class="cta__art" aria-hidden="true"></div>
+    <div class="cta__inner">
+      <h2 class="display">Start your<br/>morning ritual</h2>
+      <p>250g every fortnight, roasted the day before it ships. Pause it,
+         skip it or change the roast whenever you like.</p>
+      <form class="cta__form" id="ctaForm" novalidate>
+        <input type="email" id="ctaEmail" placeholder="you@yourmorning.com"
+               aria-label="Email address" required />
+        <button class="btn btn--solid" type="submit" data-cursor="link">Subscribe</button>
+      </form>
+      <p class="cta__note mono" id="ctaNote" role="status"></p>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       FOOTER
+       ================================================================== -->
+  <footer class="footer" data-theme="dark">
+    <!-- the page ends where the coffee begins: on the branch -->
+    <canvas id="footerCanvas" class="footer__gl" aria-hidden="true"></canvas>
+
+    <div class="footer__stage">
+      <div class="footer__lede">
+        <p class="eyebrow mono">Hand-picked · ripe only</p>
+        <h2 class="footer__title">Every cup begins<br/>as a <em>cherry</em>.</h2>
+        <p class="footer__sub">Our growers pass each tree five times a season and take
+           only the fruit that has turned deep red. Everything we do after that
+           is just trying to keep up.</p>
+      </div>
+      <div class="footer__aside">
+        <!-- the season, chapter by chapter, while the branch grows -->
+        <div class="footer__life" aria-hidden="true">
+          <span class="footer__life-num mono"><b>01</b> / 06</span>
+          <span class="footer__life-name">Shoot</span>
+          <span class="footer__life-bar"><i></i></span>
+        </div>
+        <div class="footer__after">
+          <p class="footer__hint mono" aria-hidden="true"><span class="footer__hint-dot"></span>Go on, give them a nudge</p>
+          <button class="footer__replay mono" type="button" data-cursor="link">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Watch it grow again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <svg class="rl-logo footer__mark" viewBox="33.8 19.2 881 160.5" aria-hidden="true" focusable="false"><use href="#rl-0"/><use href="#rl-1"/><use href="#rl-2"/><use href="#rl-3"/><use href="#rl-4"/><use href="#rl-5"/><use href="#rl-6"/><use href="#rl-7"/></svg>
+        <p>Roasted in small batches.<br/>Shipped within 24 hours.</p>
+      </div>
+
+      <nav class="footer__col" aria-label="Coffee">
+        <h4>Coffee</h4>
+        <a href="#roasts" data-cursor="link">Cascara Morning</a>
+        <a href="#roasts" data-cursor="link">Terrace No. 7</a>
+        <a href="#roasts" data-cursor="link">Canopy Blend</a>
+        <a href="#roasts" data-cursor="link">Night Terminal</a>
+        <a href="#collection" data-cursor="link">The Season Box</a>
+      </nav>
+
+      <nav class="footer__col" aria-label="Learn">
+        <h4>Learn</h4>
+        <a href="#brew" data-cursor="link">Brew Guide</a>
+        <a href="#lab" data-cursor="link">Roast Studio</a>
+        <a href="#journey" data-cursor="link">Traceability</a>
+        <a href="#altitude" data-cursor="link">The Harvest</a>
+      </nav>
+
+      <nav class="footer__col" aria-label="House">
+        <h4>House</h4>
+        <a href="#manifesto" data-cursor="link">Our Story</a>
+        <a href="#quote" data-cursor="link">The Roastery</a>
+        <a href="#cta" data-cursor="link">Subscriptions</a>
+        <a href="#cta" data-cursor="link">Wholesale</a>
+      </nav>
+    </div>
+
+    <div class="footer__end">
+      <span class="mono">© 2026 ROAST LAB COFFEE CO.</span>
+      <span class="mono">GROWN HIGH · ROASTED SLOW</span>
+    </div>
+  </footer>
+</main>
+
+<!-- ==================================================================
+     THE CHAMBER — the immersive stage for both product sections
+     ================================================================== -->
+<div class="chamber" id="chamber" aria-hidden="true" role="dialog" aria-modal="true"
+     aria-labelledby="chTitle">
+  <div class="chamber__veil"></div>
+  <canvas class="chamber__canvas" id="chamberCanvas"></canvas>
+
+  <button class="chamber__close" id="chamberClose" type="button" aria-label="Close"
+          data-cursor="close"><span></span><span></span></button>
+
+  <!-- drum mode: the roast -->
+  <div class="chamber__hud" id="chamberHud">
+    <div class="ch-head">
+      <span class="eyebrow mono" id="chKicker">IN THE DRUM</span>
+      <h2 class="display" id="chTitle">Canopy Blend</h2>
+    </div>
+
+    <div class="ch-gauges">
+      <div class="gauge">
+        <span class="mono">BEAN TEMP</span>
+        <b><i id="chTemp">20</i><em>°C</em></b>
+      </div>
+      <div class="gauge">
+        <span class="mono">ELAPSED</span>
+        <b id="chTime">00:00</b>
+      </div>
+      <div class="gauge">
+        <span class="mono">CHARGE</span>
+        <b><i id="chMass">10.0</i><em>kg</em></b>
+      </div>
+    </div>
+
+    <ol class="ch-phases" id="chPhases">
+      <li data-at="0.06"><span></span>Charge</li>
+      <li data-at="0.30"><span></span>Drying</li>
+      <li data-at="0.58"><span></span>First crack</li>
+      <li data-at="0.82"><span></span>Development</li>
+      <li data-at="0.98"><span></span>Drop</li>
+    </ol>
+
+    <div class="ch-curve">
+      <svg viewBox="0 0 320 90" aria-hidden="true">
+        <path class="ch-curve__grid" d="M0 22H320M0 45H320M0 68H320" />
+        <path id="chCurve" class="ch-curve__line"
+              d="M2 86C60 78 96 58 140 40S220 14 318 6" />
+        <circle id="chCurveDot" class="ch-curve__dot" cx="2" cy="86" r="3.4" />
+      </svg>
+      <span class="mono">ROAST CURVE</span>
+    </div>
+
+    <p class="ch-note mono" id="chNote">Charging the drum…</p>
+  </div>
+
+  <!-- specimen mode: one bean, and nothing else in the way -->
+  <div class="chamber__spec" id="chamberSpec" aria-hidden="true">
+    <div class="spec__head">
+      <span class="eyebrow mono" id="specKicker">LOT 04 · YIRGA HIGHLANDS</span>
+      <h2 class="display" id="specTitle">Canopy Blend</h2>
+    </div>
+    <div class="spec__grab" id="specGrab"></div>
+    <dl class="spec__facts" id="specFacts"></dl>
+    <span class="spec__hint mono">DRAG TO TURN</span>
+  </div>
+
+  <!-- specimen mode: the panel art opens out to full bleed and dissolves -->
+  <div class="chamber__flier" id="chamberFlier" aria-hidden="true"></div>
+
+  <!-- card mode: drag anywhere on the stage to turn the card -->
+  <div class="chamber__grab" id="chamberGrab" aria-hidden="true"></div>
+
+  <!-- card mode: the batch docket drops in from the top and hangs there -->
+  <div class="docket" id="chamberSheet">
+    <i class="docket__tape docket__tape--l" aria-hidden="true"></i>
+    <i class="docket__tape docket__tape--r" aria-hidden="true"></i>
+
+    <div class="docket__sheet">
+      <div class="docket__top mono">
+        <span>ROAST&nbsp;LAB</span>
+        <span id="poLot">LOT 04</span>
+      </div>
+      <span class="docket__rule" aria-hidden="true"></span>
+
+      <span class="eyebrow mono">FRESHLY OPENED</span>
+      <h2 class="display" id="poTitle">Canopy Blend</h2>
+      <p id="poDesc">Cocoa, hazelnut, dried fig.</p>
+
+      <dl class="po-facts" id="poFacts"></dl>
+
+      <span class="docket__coord mono" id="poCoord">[ 06° 04′ N, 38° 02′ E ]</span>
+      <a class="btn btn--solid" href="#cta" data-cursor="link" id="poCta">Add to the box</a>
+
+      <span class="docket__stamp" id="poStamp" aria-hidden="true">
+        <b>MEDIUM</b><i>ROASTED</i>
+      </span>
+    </div>
+  </div>
+</div>
+
+<script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/vendor/ScrollTrigger.min.js"></script>
+<script src="assets/vendor/lenis.min.js"></script>
+<script src="assets/vendor/three.min.js"></script>
+<script src="assets/js/shelf.js"></script>
+<script src="assets/js/scene.js"></script>
+<script src="assets/js/chamber.js"></script>
+<script src="assets/js/footer.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
+
+</body></html>

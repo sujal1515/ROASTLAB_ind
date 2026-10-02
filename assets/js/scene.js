@@ -1,0 +1,1374 @@
+/* =====================================================================
+   LATTECANO — WebGL layer
+
+   One persistent scene, one fixed canvas, running the whole page. A pool
+   of coffee beans is re-choreographed section by section: they swarm the
+   hero, drift past the manifesto, rain through the harvest, stream with
+   the collection, arc along the shipping route and spiral into the CTA.
+
+   Nothing is loaded from disk — the bean, its wrinkles, its colour
+   variation and the environment it reflects are all generated in code.
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  var hasWebGL = (function () {
+    try {
+      var c = document.createElement('canvas');
+      return !!(global.WebGLRenderingContext &&
+                (c.getContext('webgl2') || c.getContext('webgl')));
+    } catch (e) { return false; }
+  })();
+
+  if (!global.THREE || !hasWebGL) {
+    global.LattecanoBeans = { supported: false, create: function () { return null; } };
+    return;
+  }
+
+  var THREE = global.THREE;
+  var reduced = global.matchMedia &&
+                global.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  var smooth = function (t) { return t * t * (3 - 2 * t); };
+  // the harvest sky the corridor recedes into
+  var HAZE = null;
+
+  /* Per-frame easing ("move 5% of the way each frame") runs at whatever speed
+     the device happens to render at — snappy at 144fps, sluggish at 30. This
+     converts a per-frame rate into the equivalent for the frame just drawn,
+     so the motion takes the same wall-clock time everywhere. */
+  function damp(rate, dt) {
+    return 1 - Math.pow(1 - rate, dt * 60);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Cheap deterministic noise — used for wrinkles and colour mottling   */
+  /* ------------------------------------------------------------------ */
+  /* The obvious version of this — plain `*` on large constants, then a
+     shift — loses precision in JS floats and comes back biased: over the
+     inputs used here it never exceeded 0.5, so every per-bean "random" in
+     the scene was squeezed into the bottom half of its range. Math.imul
+     keeps the multiply in 32-bit integer space, which fixes the spread. */
+  function hash3(x, y, z) {
+    var h = Math.imul(x | 0, 374761393) ^
+            Math.imul(y | 0, 668265263) ^
+            Math.imul(z | 0, 1442695040);
+    h = Math.imul(h ^ (h >>> 15), 2246822519);
+    h = Math.imul(h ^ (h >>> 13), 3266489917);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  }
+
+  function vnoise3(x, y, z) {
+    var xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+    var xf = x - xi, yf = y - yi, zf = z - zi;
+    var u = smooth(xf), v = smooth(yf), w = smooth(zf);
+    function c(dx, dy, dz) { return hash3(xi + dx, yi + dy, zi + dz); }
+    var x00 = lerp(c(0,0,0), c(1,0,0), u), x10 = lerp(c(0,1,0), c(1,1,0), u);
+    var x01 = lerp(c(0,0,1), c(1,0,1), u), x11 = lerp(c(0,1,1), c(1,1,1), u);
+    return lerp(lerp(x00, x10, v), lerp(x01, x11, v), w);
+  }
+
+  function fbm3(x, y, z, octaves) {
+    var sum = 0, amp = 0.5, f = 1;
+    for (var i = 0; i < (octaves || 4); i++) {
+      sum += vnoise3(x * f, y * f, z * f) * amp;
+      amp *= 0.5; f *= 2.07;
+    }
+    return sum;
+  }
+
+  /* ================================================================== */
+  /* THE BEAN                                                           */
+  /*                                                                    */
+  /* A real coffee bean is not symmetric. One face is flat-to-concave   */
+  /* and split by a wandering fissure; the other is a smooth dome. The  */
+  /* fissure holds pale silverskin, which is why the centre line reads  */
+  /* lighter than the body. All of that is built in here.               */
+  /* ================================================================== */
+  function beanGeometry(segments, seed) {
+    var s = segments || 52;
+    var geo = new THREE.SphereGeometry(1, s, Math.round(s * 0.76));
+    var pos = geo.attributes.position;
+    var sd = (seed || 1) * 7.13;
+    var v = new THREE.Vector3();
+    var i;
+
+    // A narrow crease spikes when there are too few vertices to resolve it,
+    // so its width tracks the tessellation. Small beans read fine slightly
+    // softer; broken ones never do.
+    var sigma = 0.040 + 1.9 / s;
+    var sig2 = sigma * sigma;
+
+    function creaseAt(x, y, tight) {
+      var ny = Math.abs(y / 1.45);
+      var wander = 0.13 * Math.sin(y * 1.65 + sd) + 0.045 * Math.sin(y * 4.1 - sd);
+      var d = x - wander;
+      var s2 = tight ? sig2 * 0.34 : sig2;
+      return Math.exp(-(d * d) / s2) * (1 - Math.pow(ny, 5));
+    }
+
+    /* --- 1. the silhouette ------------------------------------------ */
+    for (i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+
+      // A stretched sphere tapers to almond points. A coffee bean is a
+      // barrel with blunt ends, so swap the circular profile for a
+      // superellipse that holds its width almost to the tips.
+      // An arabica bean runs about 1 : 0.65 : 0.40 in length : width : depth,
+      // with ends that are rounded but not flat. A stretched sphere gives
+      // almond points and a strong superellipse gives a pill, so this sits
+      // between the two.
+      var u = v.y;                                   // sphere latitude, -1..1
+      var circ = Math.sqrt(Math.max(1e-4, 1 - u * u));
+      var blunt = Math.pow(Math.max(0, 1 - Math.pow(Math.abs(u), 2.15)), 1 / 2.15);
+      var widen = blunt / circ;
+
+      v.x *= widen * 0.94;
+      v.z *= widen;
+      v.y = u * 1.45;                    // long axis
+      v.z *= 0.58;                       // squashed through the cut
+
+      var ny = Math.abs(u);
+      var taper = 1 - 0.12 * Math.pow(ny, 3);
+      v.x *= taper;
+      v.z *= taper;
+
+      // front (z > 0) is the cut face, back is the dome — eased, not stepped
+      var front = smooth(clamp((v.z + 0.02) / 0.24, 0, 1));
+      var back = 1 - front;
+
+      v.z *= 1 - 0.30 * front;           // flatten the cut face
+      v.z *= 1 + 0.15 * back;            // bulge the dome
+
+      var groove = creaseAt(v.x, v.y);
+      v.z *= 1 - 0.80 * groove * front;
+      v.x *= 1 + 0.052 * groove * front;  // the lips pinch outward
+
+      // no two beans the same
+      v.x += 0.022 * Math.sin(v.y * 3.1 + sd) * (0.5 + 0.5 * back);
+      v.y += 0.014 * Math.sin(v.x * 2.6 - sd);
+
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+
+    /* --- 2. broad lumps only; the fine grain is a bump map ---------- */
+    var nrm = geo.attributes.normal;
+    var n = new THREE.Vector3();
+    for (i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      n.fromBufferAttribute(nrm, i);
+      var w = fbm3(v.x * 2.7 + sd, v.y * 2.2, v.z * 2.7, 3) - 0.5;
+      var amt = w * 0.026;
+      pos.setXYZ(i, v.x + n.x * amt, v.y + n.y * amt, v.z + n.z * amt);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+
+    /* --- 3. vertex colour ------------------------------------------
+       On a real bean the fissure is packed with silverskin — pale, dry,
+       fibrous, and clearly LIGHTER than the body. Rendering it as a dark
+       groove (which is what an occlusion-only model gives you) is the single
+       thing that stops a bean reading as a bean. So: a bright fibrous fill
+       down the centre, a thin shadow where the walls turn away from it, and
+       an unevenly roasted body around both. */
+    var col = new Float32Array(pos.count * 3);
+    for (i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      var fr = smooth(clamp((v.z + 0.02) / 0.20, 0, 1));
+      var fill = creaseAt(v.x, v.y, true) * fr;    // the silverskin itself
+      var wide = creaseAt(v.x, v.y, false) * fr;   // fill plus its walls
+      var wall = clamp(wide - fill * 1.3, 0, 1);   // where the walls turn away
+
+      // the silverskin is fibrous — it streaks along the bean, not across it
+      var fibre = 0.62 + 0.76 * fbm3(v.y * 22 + sd, v.x * 5, 1.7, 3);
+
+      // roasting is never even: patches scorch harder than others
+      var mottle = 0.74 + 0.36 * fbm3(v.x * 3.2 + sd, v.y * 2.6, v.z * 3.2, 3)
+                        + 0.16 * fbm3(v.x * 1.3 - sd, v.y * 1.1, v.z * 1.3, 2);
+
+      /* The ends sit closest to the drum wall and take the most heat, so a
+         roasted bean is darker at its tips than across its middle. */
+      var tips = Math.pow(Math.abs(v.y) / 1.45, 3);
+
+      var body = mottle * (1 - 0.32 * wall) * (1 - 0.24 * tips);
+
+      /* Richness is hue, not just value. A scorched patch is not the same
+         brown made darker — sugars caramelise toward red and then toward
+         black, so the green and blue fall away faster than the red does.
+         Varying only brightness is what made the beans read as terracotta:
+         one flat orange-brown at different exposures. */
+      var deep = clamp((1.04 - body) / 0.34, 0, 1);
+      var r = body * (1 + 0.04 * deep);
+      var g = body * (1 - 0.13 * deep);
+      var b = body * (1 - 0.26 * deep);
+
+      // the silverskin is drier and paler than the bean, so it loses the red
+      var silk = fill * 1.75 * fibre;
+      col[i * 3]     = r + silk;
+      col[i * 3 + 1] = g + silk * 1.05;
+      col[i * 3 + 2] = b + silk * 1.16;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+    return geo;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Micro-relief: the pitting and grain a roasted bean has at close     */
+  /* range. Doing this in a map rather than in vertices keeps the small  */
+  /* beans cheap and stops the low-detail ones from tearing.             */
+  /* ------------------------------------------------------------------ */
+  var GRAIN = null, MATTE = null;
+
+  function noiseCanvasTexture(n, contrast, floor, span, repeat) {
+    var cv = document.createElement('canvas');
+    cv.width = cv.height = n;
+    var ctx = cv.getContext('2d');
+    var img = ctx.createImageData(n, n);
+    var d = img.data;
+    for (var y = 0; y < n; y++) {
+      for (var x = 0; x < n; x++) {
+        var u = x / n * 9, w = y / n * 9;
+        var val = fbm3(u * 1.6, w * 1.6, 0.5, 4) * 0.58 +
+                  fbm3(u * 5.0, w * 5.0, 2.5, 3) * 0.42;
+        val = clamp(0.5 + (val - 0.5) * contrast, 0, 1);
+        val = floor + val * span;
+        var c8 = Math.round(clamp(val, 0, 1) * 255);
+        var k = (y * n + x) * 4;
+        d[k] = d[k + 1] = d[k + 2] = c8;
+        d[k + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    var tex = new THREE.CanvasTexture(cv);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(repeat, repeat);
+    return tex;
+  }
+
+  /* Roughness is multiplied by its map, so a mid-grey map would halve it and
+     turn a dry roasted bean into polished chocolate. This one sits high. */
+  function matteTexture() {
+    if (!MATTE) MATTE = noiseCanvasTexture(256, 1.6, 0.70, 0.30, 2);
+    return MATTE;
+  }
+
+  function grainTexture() {
+    if (GRAIN) return GRAIN;
+    var n = 512;
+    var cv = document.createElement('canvas');
+    cv.width = cv.height = n;
+    var ctx = cv.getContext('2d');
+    var img = ctx.createImageData(n, n);
+    var d = img.data;
+
+    /* Octave scales matter more than octave count. Stacked too high, every
+       feature lands under a pixel once the map is repeated over the mesh,
+       the bump derivatives average out, and the surface renders dead smooth
+       — which is exactly what the first version of this did. These three
+       sit at roughly 36px, 11px and 4px, so they survive on screen. */
+    for (var y = 0; y < n; y++) {
+      for (var x = 0; x < n; x++) {
+        var u = x / n * 9, w = y / n * 9;
+        var val = fbm3(u * 1.6, w * 1.6, 0.5, 4) * 0.52 +   // broad dents
+                  fbm3(u * 5.0, w * 5.0, 2.5, 3) * 0.32 +   // the pitting
+                  fbm3(u * 14,  w * 14,  5.5, 2) * 0.16;    // fine pores
+        val = clamp(0.5 + (val - 0.5) * 1.8, 0, 1);
+        var c8 = Math.round(val * 255);
+        var k = (y * n + x) * 4;
+        d[k] = d[k + 1] = d[k + 2] = c8;
+        d[k + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    GRAIN = new THREE.CanvasTexture(cv);
+    GRAIN.wrapS = GRAIN.wrapT = THREE.RepeatWrapping;
+    GRAIN.repeat.set(3, 3);
+    return GRAIN;
+  }
+
+  var GEO = {};
+  function sharedGeo(level) {
+    var spec = { lo: [34, 1], mid: [54, 2], hi: [96, 3] }[level] || [54, 2];
+    if (!GEO[level]) GEO[level] = beanGeometry(spec[0], spec[1]);
+    return GEO[level];
+  }
+
+  /* The hero's cup is the collection's cup. It used to be a separate
+     lathe with a lid on it, which meant two cups on one site that did not
+     match and only one of them any good. This one is built by the shelf's
+     module — same profile, same rolled rim, same corrugated sleeve, same
+     coffee — with steam added, because here it stands still long enough
+     for steam to read. */
+  var HERO_CUP = { name: 'Roast Lab', hex: 0x6E3E1D, roastLevel: 3 };
+
+  function buildCup(scene) {
+    var cup = new THREE.Group();
+    var vessel = null;
+
+    // a phone's hero pane is a tall slot; the same cup fills it twice over
+    var S = (global.innerWidth < 760) ? 2.15 : 2.72;
+    /* Lidded and printed with the house and nothing else. The shelf's
+       cups are open, because there the coffee inside is the product; here
+       it is the brand, and a lid is what a cup handed over the counter
+       actually has on it. */
+    var RIM = S * 0.90, SPOUT = 0;
+    if (global.LattecanoShelf && global.LattecanoShelf.supported) {
+      vessel = global.LattecanoShelf.build(HERO_CUP, { lid: true, brandOnly: true });
+      vessel.group.scale.setScalar(S);
+      cup.add(vessel.group);
+      // steam leaves through the sip hole, not off the whole rim
+      RIM = vessel.spout * S;
+      SPOUT = vessel.spoutR * S;
+    }
+
+    /* Steam. Three soft plumes that rise and fade — the one cue that says
+       the cup is full and hot rather than a prop. */
+    var steamMat = new THREE.MeshBasicMaterial({
+      map: sunTexture(), transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+      toneMapped: false, color: 0xe6dcc6
+    });
+    var steam = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), steamMat, 14);
+    steam.frustumCulled = false;
+    cup.add(steam);
+    var puffs = [];
+    for (var sp = 0; sp < 14; sp++) {
+      puffs.push({
+        /* It leaves through the sip hole, which is a thumb's width across
+           — a plume spread over the whole rim is what an open cup does,
+           and a lidded one plainly does not. */
+        x: (hash3(sp, 5, 2) - 0.5) * 0.16,
+        z: (hash3(sp, 9, 4) - 0.5) * 0.16,
+        life: hash3(sp, 13, 6),
+        size: 0.5 + hash3(sp, 17, 8) * 0.7,
+        sway: (hash3(sp, 21, 10) - 0.5) * 1.4
+      });
+    }
+    var sd2 = new THREE.Object3D();
+
+    /* The cup comes out of the shelf already in proportion, so the group
+       carries no stretch — the old one was a squat lathe propped up by a
+       1 : 1.24 scale, which is what made its rim read as an oval. */
+    cup.visible = false;
+    scene.add(cup);
+
+    var drag = 0, spin = 0, lean = 0, leanTo = 0;
+    var build = 1;                     // 0 = still arriving, 1 = settled
+
+    return {
+      group: cup,
+      setVisible: function (v) { cup.visible = v; },
+
+      /* The preloader's cup IS this cup. Rather than build a second one
+         behind a curtain and swap it for this at the end — which is a
+         match nobody ever quite makes — the loader drives this one from
+         far away and spinning to its resting pose, and then lifts the
+         curtain off what is already there. */
+      setBuild: function (p) { build = clamp(p, 0, 1); },
+
+      /* Flick it and it keeps going. A drag that only moves the cup while
+         the pointer is down feels like a slider; carrying the velocity and
+         letting friction take it makes it feel like an object. */
+      nudge: function (dx) { spin += dx * 0.42; },
+
+      /* And it leans toward the pointer even when you are not holding it,
+         which is what makes the hero worth putting a cursor on at all. */
+      look: function (x) { leanTo = clamp(x, -1, 1); },
+
+      update: function (t, reveal, dolly, dt) {
+        if (!cup.visible) return;
+        var f = Math.min((dt || 0.016) * 60, 3);
+
+        /* It rocks around front rather than spinning: a cup that turns all
+           the way round shows its brand a third of the time. A flick still
+           spins it fully, then friction and a soft pull bring it home. */
+        spin *= Math.pow(0.935, f);
+        spin += (-drag) * 0.0022 * f;
+        drag += spin * f;
+
+        lean += (leanTo - lean) * (1 - Math.pow(0.90, f));
+
+        cup.rotation.y = Math.sin(t * 0.22) * 0.30 + drag + lean * 0.30;
+        /* Tipped toward the reader: it is the only angle from which the
+           coffee in it is visible at all. */
+        /* Barely tipped. The shelf's cups lean well over because the
+           coffee in them is the point; this one has a lid on, so leaning
+           it only shows you the top of that. */
+        cup.rotation.x = 0.11 + Math.sin(t * 0.33) * 0.022 - dolly * 0.10;
+        cup.rotation.z = -0.13 + Math.sin(t * 0.4) * 0.025 - dolly * 0.16;
+        cup.position.y = Math.sin(t * 0.55) * 0.09 - dolly * 0.5;
+        cup.scale.setScalar(reveal);
+
+        /* The arrival, laid over the resting pose rather than replacing
+           it, so there is no moment where one hands over to the other:
+           at build = 1 every one of these terms is zero. */
+        if (build < 1) {
+          var a = 1 - build;
+          var e = 1 - a * a * a;                   // expo-ish out
+          var k = 1 - e;
+          cup.rotation.y += k * Math.PI * 7;
+          cup.rotation.x += k * 0.80;
+          cup.rotation.z += k * -0.55;
+          cup.position.z = k * -13;
+          cup.position.y -= k * 0.55;
+          cup.scale.setScalar(reveal * (0.20 + 0.80 * e));
+        } else if (cup.position.z !== 0) {
+          cup.position.z = 0;
+        }
+
+        steamMat.opacity = reveal * 0.26;
+        for (var i = 0; i < puffs.length; i++) {
+          var q = puffs[i];
+          q.life += (dt || 0.016) * 0.16;
+          if (q.life > 1) q.life -= 1;
+          sd2.position.set(
+            q.x + Math.sin(t * 0.7 + i) * 0.28 * q.life * q.sway,
+            RIM + q.life * 2.6,
+            SPOUT + q.z
+          );
+          sd2.scale.setScalar(q.size * (0.35 + q.life * 1.8));
+          sd2.updateMatrix();
+          steam.setMatrixAt(i, sd2.matrix);
+        }
+        steam.instanceMatrix.needsUpdate = true;
+      }
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* The sun behind it, plus the dust it lights                          */
+  /* ------------------------------------------------------------------ */
+  function buildSky(scene) {
+    var sky = new THREE.Group();
+
+    var glow = new THREE.Mesh(
+      new THREE.PlaneGeometry(9, 9),
+      new THREE.MeshBasicMaterial({
+        map: sunTexture(), transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, toneMapped: false,
+        color: 0xffd9a0, opacity: 0
+      }));
+    glow.position.set(6.4, 3.6, -16);
+    sky.add(glow);
+
+    var core = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.1, 2.1),
+      new THREE.MeshBasicMaterial({
+        map: sunTexture(), transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, toneMapped: false,
+        color: 0xfff3d2, opacity: 0
+      }));
+    core.position.set(6.4, 3.6, -15.8);
+    sky.add(core);
+
+    // a thin anamorphic streak, the way a wide lens smears a highlight
+    var streak = new THREE.Mesh(
+      new THREE.PlaneGeometry(26, 0.5),
+      new THREE.MeshBasicMaterial({
+        map: sunTexture(), transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, toneMapped: false,
+        color: 0xffcf96, opacity: 0
+      }));
+    streak.position.set(6.4, 3.6, -15.9);
+    sky.add(streak);
+
+    var N = 420;
+    var pos = new Float32Array(N * 3);
+    for (var i = 0; i < N; i++) {
+      pos[i * 3]     = (hash3(i, 3, 1) - 0.5) * 70;
+      pos[i * 3 + 1] = (hash3(i, 7, 2) - 0.5) * 42;
+      pos[i * 3 + 2] = -6 - hash3(i, 11, 3) * 34;
+    }
+    var pg = new THREE.BufferGeometry();
+    pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    var stars = new THREE.Points(pg, new THREE.PointsMaterial({
+      color: 0xfff0d8, size: 0.06, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending
+    }));
+    sky.add(stars);
+
+    sky.visible = false;
+    scene.add(sky);
+
+    return {
+      group: sky,
+      setVisible: function (v) { sky.visible = v; },
+      update: function (t, reveal) {
+        if (!sky.visible) return;
+        var flicker = 0.9 + Math.sin(t * 1.7) * 0.1;
+        glow.material.opacity = reveal * 0.58 * flicker;
+        core.material.opacity = reveal * 0.95 * flicker;
+        streak.material.opacity = reveal * 0.20 * flicker;
+        stars.material.opacity = reveal * 0.55;
+      }
+    };
+  }
+
+  var SUNTEX = null;
+  function sunTexture() {
+    if (SUNTEX) return SUNTEX;
+    var n = 128;
+    var cv = document.createElement('canvas');
+    cv.width = cv.height = n;
+    var g = cv.getContext('2d');
+    var rg = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    rg.addColorStop(0.00, 'rgba(255,255,255,1)');
+    rg.addColorStop(0.12, 'rgba(255,244,222,0.92)');
+    rg.addColorStop(0.36, 'rgba(255,205,140,0.34)');
+    rg.addColorStop(1.00, 'rgba(255,180,110,0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, n, n);
+    SUNTEX = new THREE.CanvasTexture(cv);
+    return SUNTEX;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* CLOUDS                                                              */
+  /*                                                                     */
+  /* Coffee this good grows above the cloud line, so the harvest section  */
+  /* sits in it. Each cloud is a mass of soft billboards rather than one  */
+  /* sprite — overlapping puffs at different depths are what give it      */
+  /* volume, and drifting them at speeds tied to their distance is what   */
+  /* sells the parallax.                                                  */
+  /* ------------------------------------------------------------------ */
+  var PUFF = null;
+  function puffTexture() {
+    if (PUFF) return PUFF;
+    var n = 256;
+    var cv = document.createElement('canvas');
+    cv.width = cv.height = n;
+    var ctx = cv.getContext('2d');
+    var img = ctx.createImageData(n, n);
+    var d = img.data;
+
+    for (var y = 0; y < n; y++) {
+      for (var x = 0; x < n; x++) {
+        var u = (x / n - 0.5) * 2, v = (y / n - 0.5) * 2;
+        var r = Math.sqrt(u * u + v * v);
+
+        // a soft disc, eaten into by noise so the edge is ragged not round
+        // a firm core with a ragged falloff: overlapping cores build a solid
+        // body, and only the rim stays wispy
+        var edge = 1 - smooth(clamp((r - 0.30) / 0.70, 0, 1));
+        edge = Math.pow(edge, 0.72);
+        var lumps = fbm3(u * 2.9 + 11, v * 2.9 + 3, 0.7, 4);
+        var a = edge * (0.86 + lumps * 0.62) - 0.05;
+        a = clamp(a, 0, 1);
+        a = a * a * (3 - 2 * a);
+
+        var k = (y * n + x) * 4;
+        d[k] = d[k + 1] = d[k + 2] = 255;
+        d[k + 3] = Math.round(a * 255);
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    PUFF = new THREE.CanvasTexture(cv);
+    PUFF.premultiplyAlpha = false;
+    return PUFF;
+  }
+
+  function buildClouds(scene) {
+    var small = global.innerWidth < 760;
+    // Volume comes from many small overlapping puffs. A few large ones just
+    // read as a grey smear however soft the texture is.
+    var MASSES = small ? 9 : 14;
+    var PER = small ? 16 : 26;
+    var COUNT = MASSES * PER;
+
+    var geo = new THREE.PlaneGeometry(1, 1);
+    var mat = new THREE.MeshBasicMaterial({
+      map: puffTexture(),
+      transparent: true,
+      depthWrite: false,
+      opacity: 0,
+      toneMapped: false
+    });
+
+    var mesh = new THREE.InstancedMesh(geo, mat, COUNT);
+    mesh.frustumCulled = false;
+    mesh.renderOrder = -1;                 // always behind the beans
+    mesh.visible = false;
+
+    var puffs = [];
+    var i, m;
+    for (m = 0; m < MASSES; m++) {
+      var mx = (m / MASSES - 0.5) * 88 + (hash3(m, 5, 1) - 0.5) * 12;
+      var my = -5.0 + hash3(m, 9, 2) * 11;
+      var mz = -4 - hash3(m, 13, 3) * 44;
+      var rx = 4.5 + hash3(m, 17, 4) * 4.5;
+      var ry = 1.3 + hash3(m, 21, 5) * 1.3;
+
+      for (i = 0; i < PER; i++) {
+        var id = m * PER + i;
+        var t = i / PER;
+        puffs.push({
+          mass: m,
+          x: mx + (hash3(id, 31, 6) - 0.5) * rx * 2,
+          y: my + (hash3(id, 37, 7) - 0.5) * ry * 2,
+          z: mz + (hash3(id, 41, 8) - 0.5) * 4,
+          // a puff's own height inside its mass decides how lit it is
+          lift: (hash3(id, 37, 7) - 0.5),
+          size: 2.6 + hash3(id, 43, 9) * 4.0,
+          spin: (hash3(id, 47, 10) - 0.5) * 0.05,
+          rot: hash3(id, 53, 11) * 6.28,
+          baseX: 0
+        });
+        puffs[puffs.length - 1].baseX = puffs[puffs.length - 1].x;
+      }
+    }
+
+    // Back to front, once. Instanced transparency has no per-instance sort,
+    // and the puffs only ever move sideways, so this ordering holds.
+    puffs.sort(function (a, b) { return a.z - b.z; });
+
+    var dummy = new THREE.Object3D();
+    var col = new THREE.Color();
+    // Sunlit tops, cool undersides — the contrast between the two is what
+    // makes a billboard read as a cloud rather than as a smudge.
+    var SUN = new THREE.Color(0xffffff);
+    /* A sage shadow, well lifted. At the palette's own mid-green the cloud
+       undersides read as green smoke — heavy, and muddy against the ivory.
+       Cloud shade is sky light, so it stays close to white and only leans
+       green. */
+    var SHADE = new THREE.Color(0x8aa697);
+
+    for (i = 0; i < COUNT; i++) {
+      var p = puffs[i];
+      // distance pales them out — ordinary atmospheric perspective
+      var far = clamp((-p.z - 6) / 40, 0, 1);
+      col.copy(SHADE).lerp(SUN, clamp(0.52 + p.lift * 2.2, 0, 1));
+      col.lerp(new THREE.Color(0xc6d5cb), far * 0.5);
+      mesh.setColorAt(i, col);
+    }
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+    scene.add(mesh);
+
+    return {
+      mesh: mesh,
+      material: mat,
+      update: function (t, opacity, rise) {
+        mat.opacity = opacity;
+        mesh.visible = opacity > 0.004;
+        if (!mesh.visible) return;
+
+        for (var i = 0; i < COUNT; i++) {
+          var p = puffs[i];
+          // nearer clouds run faster; that difference is the parallax
+          var speed = 0.10 + (1 - clamp((-p.z - 6) / 40, 0, 1)) * 0.42;
+          var x = p.baseX + (reduced ? 0 : t * speed);
+          var span = 96;
+          x = ((x + span * 0.5) % span + span) % span - span * 0.5;
+
+          dummy.position.set(x, p.y + rise, p.z);
+          dummy.rotation.set(0, 0, p.rot + (reduced ? 0 : t * p.spin));
+          dummy.scale.setScalar(p.size);
+          dummy.updateMatrix();
+          mesh.setMatrixAt(i, dummy.matrix);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+      }
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* A small studio, painted on a canvas and convolved into an env map.  */
+  /* This is what gives the beans believable specular roll-off.          */
+  /* ------------------------------------------------------------------ */
+  function studioEnv(renderer) {
+    var c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    var g = c.getContext('2d');
+
+    var sky = g.createLinearGradient(0, 0, 0, 256);
+    // a gold-lit ceiling over a forest floor: the room the palette describes
+    sky.addColorStop(0.00, '#e2cfa4');
+    sky.addColorStop(0.42, '#6f6a4c');
+    sky.addColorStop(0.52, '#20382d');
+    sky.addColorStop(1.00, '#08140f');
+    g.fillStyle = sky; g.fillRect(0, 0, 512, 256);
+
+    function blob(x, y, r, colour) {
+      var rg = g.createRadialGradient(x, y, 2, x, y, r);
+      rg.addColorStop(0, colour);
+      rg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = rg; g.fillRect(0, 0, 512, 256);
+    }
+    blob(132, 54, 118, 'rgba(255,250,242,0.95)'); // key
+    blob(360, 96, 150, 'rgba(210,176,116,0.62)'); // gold fill
+    blob(470, 150, 96, 'rgba(58,110,88,0.30)');   // green bounce
+
+    var tex = new THREE.CanvasTexture(c);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    var rt = pmrem.fromEquirectangular(tex);
+    pmrem.dispose();
+    tex.dispose();
+    return rt.texture;
+  }
+
+  /* ================================================================== */
+  /* FORMATIONS                                                         */
+  /*                                                                    */
+  /* Each one places bean i somewhere in view space. Beans ease toward   */
+  /* whichever formation the scroll has selected, so the arrangement     */
+  /* morphs continuously instead of cutting.                            */
+  /* ================================================================== */
+  var TAU = Math.PI * 2;
+
+  // Low-discrepancy sequences, not raw randoms. Random placement clumps —
+  // beans end up intersecting each other, which reads as one melted lump.
+  var PHI = 0.6180339887;
+  var GOLD = 2.39996323;                        // golden angle, radians
+  function span(i, lo, hi) {                    // even 1-D spread, no gaps
+    return lo + (((i * PHI) % 1)) * (hi - lo);
+  }
+
+  /* A bean parked at world x = 6 sits near the edge when it is close and
+     halfway across the copy when it is far. Formations that need to stay
+     clear of text therefore place themselves in screen fractions, and this
+     converts those back to world units at whatever depth they chose. */
+  var FORMATIONS = {
+    /* hero: a ring of beans orbiting the cup. The ring is tilted almost
+       edge-on so beans sweep behind the cup and back in front of it —
+       that pass is what reads as depth rather than as a flat halo. */
+    swarm: function (b, i, n, t, p, view) {
+      /* Golden-angle spacing, not evenly-indexed arcs: a projected circle
+         crowds its own turning points, so evenly spaced beans pile into two
+         clumps at the left and right edges. This keeps the sweep even, and
+         the jitter gives it body, so it reads as a swirl around the cup
+         rather than as a wire hoop. */
+      var a = i * GOLD + t * 0.30;
+      var R = 2.6 + b.r1 * 2.1 - p * 0.3;
+      var u = Math.cos(a) * R;
+      var v = Math.sin(a) * R;
+      var tilt = 1.16;                         // near edge-on
+
+      return {
+        x: u + (b.r2 - 0.5) * 1.4,
+        y: v * Math.sin(tilt) * 0.40 + (b.r3 - 0.5) * 2.5 + 0.1,
+        // a deep sweep, so beans pass plainly in front of and behind the cup
+        // the ring sits a little behind the cup, so fewer beans swell up
+        // right at the lens
+        z: v * Math.cos(tilt) * 1.5 + (b.r2 - 0.5) * 1.6 - 0.9,
+        // small against the cup, the way they are in the reference
+        s: b.size * 0.34
+      };
+    },
+
+    // manifesto / quote: a few large beans loitering in the margins
+    margin: function (b, i, n, t, p, view) {
+      var keep = i < 10;
+      var side = (i % 2) ? 1 : -1;
+      var k = Math.floor(i / 2) / 5;
+      var z = -1 - (i % 4) * 1.9;
+      return {
+        x: side * view.halfW(z) * (0.84 + (i % 3) * 0.07),
+        y: (k - 0.5) * view.halfH(z) * 1.75 + Math.sin(t * 0.3 + i) * 0.4,
+        z: z,
+        s: keep ? b.size * 1.45 : 0
+      };
+    },
+
+    /* harvest: the dive.
+
+       A corridor of beans running back into the haze, travelling straight at
+       the lens. Nothing orbits: each bean holds one fixed lateral offset for
+       the whole run and simply closes on the camera, so its spread across the
+       frame is honest perspective rather than a pose. That is what makes it
+       read as travel instead of as a swirl — and it is why none of them sits
+       on the axis, because a bean dead centre only swells in place, which is
+       the one part of a fly-through that reads as a zoom.
+
+       GSAP scrubs the travel and the dolly (see `initAltitude`), easing in, so
+       the dive accelerates the further down the section you come and is flat
+       out by the time the roasts arrive.
+
+       The wrap is the thing a corridor has to get right. A bean that reaches
+       the lens has to start again at the far end, and the field eases toward
+       its targets rather than snapping, so that jump would drag it backwards
+       through the whole corridor in plain sight. Both ends of the run fade,
+       and `frame` teleports beans nobody can see. */
+    dive: function (b, i, n, t, p, view) {
+      var wide = view._aspect > 1.15;
+      var d = view._dive || 0;
+
+      /* NEAR has to clear the camera, and the camera is not parked: the dive
+         dollies it from z 12 in to 9.8, so a corridor that ran to 11.4 would
+         end up with its last stretch behind the lens and beans blinking out
+         against the near plane. */
+      var FAR = -30, NEAR = 8.0;
+
+      // 0 at the far plane, 1 at the lens. Scroll does most of the travelling;
+      // the time term is only so the corridor still moves when nobody scrolls.
+      // Depth comes off the index, so the corridor is evenly filled and never
+      // opens a gap you can see down.
+      /* Unhurried. The corridor used to make better than three full passes
+         across one section's scroll, which read as beans being fired past
+         the lens; it now makes about one and a half, and drifts half as fast
+         when nobody is scrolling. */
+      var u = ((i * PHI) + t * 0.03 + d * 1.1) % 1;
+      if (u < 0) u += 1;
+
+      /* Where a bean sits in the corridor's cross-section has to be drawn from
+         somewhere unrelated to its depth. Taking all three off the index with
+         golden-ratio steps looks decorrelated and is not: the two rotations
+         beat against each other and forty-four beans line up into a pair of
+         visible spiral arms. These are independent per-bean hashes. sqrt()
+         because a disc's area grows with r², and without it every bean crowds
+         the middle. */
+      var ang = b.r2 * TAU;
+      var rad = (wide ? 1.9 : 1.4) + Math.sqrt(b.r3) * (wide ? 5.6 : 4.0);
+
+      // the corridor banks as it runs back, so the travel has a line to it
+      var bank = Math.sin(u * 2.4 + 0.6) * 1.2;
+
+      // nothing pops in at the far end or blows through the lens
+      var fade = smooth(clamp(u / 0.14, 0, 1)) * smooth(clamp((1 - u) / 0.10, 0, 1));
+
+      var out = {
+        x: (wide ? 1.5 : 0) + Math.cos(ang) * rad + bank,
+        y: Math.sin(ang) * rad * 0.82 + Math.sin(t * 0.5 + i) * 0.12,
+        z: FAR + u * (NEAR - FAR),
+        s: b.size * (wide ? 0.66 : 0.44) * fade
+      };
+
+      /* The release. As the roasts rise, the arrival timeline (initAltitude)
+         carries every bean out of the corridor to the place the next section
+         holds it — on the same scrubbed line as the heading and the panels,
+         so the scatter IS that transition rather than something that fires
+         when a zone boundary is crossed. Each bean bows outward on the way,
+         toward its own side of the frame, so the corridor opens like a door
+         rather than sliding. By the time the field changes formation the
+         beans are already where it wants them; scrolling back reverses it. */
+      var r = view._release || 0;
+      if (r > 0) {
+        var to = FORMATIONS.sparse(b, i, n, t, 0, view);
+        var k = smooth(clamp(r, 0, 1));
+        var bow = Math.sin(k * Math.PI) * (to.x >= 0 ? 1 : -1) * 1.6;
+        out.x = lerp(out.x, to.x, k) + bow;
+        out.y = lerp(out.y, to.y, k);
+        out.z = lerp(out.z, to.z, k);
+        out.s = lerp(out.s, to.s, k);
+      }
+      return out;
+    },
+
+    // roasts / brew: quiet, well clear of the copy
+    sparse: function (b, i, n, t, p, view) {
+      var keep = i % 3 === 0;
+      var side = (i % 2) ? 1 : -1;
+      var k = Math.floor(i / 6) / 3;
+      var z = -3.5 - (i % 3) * 2.4;
+      return {
+        x: side * view.halfW(z) * (0.88 + (i % 4) * 0.05),
+        y: (k - 0.5) * view.halfH(z) * 1.7 + Math.sin(t * 0.26 + i) * 0.35,
+        z: z,
+        s: keep ? b.size * 1.2 : 0
+      };
+    },
+
+    // roast lab: the feature bean, with a ring holding station behind it
+    orbit: function (b, i, n, t, p, view) {
+      if (i === 0) {
+        // On a phone the panel takes the lower half, so lift the bean into
+        // the space above it instead of sitting behind the controls.
+        var portrait = view._aspect < 1;
+        return {
+          x: portrait ? 0 : 0.05,
+          y: portrait ? view.halfH(3.2) * 0.44 : 0,
+          z: 3.2,
+          // sized to fill roughly 45% of the viewport height at camera z=12
+          s: portrait ? 0.74 : 1.0
+        };
+      }
+      if (i > 13) return { x: 0, y: 0, z: -18, s: 0 };
+      var k = (i - 1) / 13;
+      var a = k * TAU + t * 0.09;
+      return {
+        x: Math.cos(a) * (4.2 + (i % 3) * 0.5),
+        y: Math.sin(a) * (2.7 + (i % 2) * 0.5),
+        z: -2 - (i % 4) * 1.6,
+        s: b.size * 0.78
+      };
+    },
+
+    // collection: scenery passing the other way
+    stream: function (b, i, n, t, p, view) {
+      var cycle = 30;
+      var z = -2.5 - (i % 6) * 1.9;
+      return {
+        x: 15 - ((p * 24 + (i / n) * cycle + t * 1.0) % cycle),
+        y: span(i * 3 + 1, -0.9, 0.9) * view.halfH(z),
+        z: z,
+        s: b.size
+      };
+    },
+
+    // journey: strung along the shipping arc, travelling it
+    arc: function (b, i, n, t, p, view) {
+      var travel = ((i / n) + t * 0.04) % 1;
+      return {
+        x: lerp(-8.2, 8.2, travel),
+        y: Math.sin(travel * Math.PI) * 3.4 - 1.2 + Math.sin(t * 0.7 + i) * 0.14,
+        z: -1.5 - (i % 5) * 1.7,
+        s: b.size * 0.92
+      };
+    },
+
+    // cta: everything drawn into the cup
+    // cta: a halo drawn around the copy, deliberately hollow in the middle
+    // so the heading and the form are never crossed
+    swirl: function (b, i, n, t, p, view) {
+      var k = i / n;
+      var a = k * TAU * 2.2 + t * 0.26;
+      var z = -1 - (i % 6) * 1.5;
+      var r = 0.74 + k * 0.48;          // fraction of the half-viewport
+      return {
+        x: Math.cos(a) * view.halfW(z) * r,
+        y: Math.sin(a) * view.halfH(z) * r * 1.1,
+        z: z,
+        s: b.size
+      };
+    },
+    /* The end of the page. The footer is its own world, with its own
+       fruit; the beans clear the stage for it instead of being wiped off
+       by its edge — out along the ring they were on, lifting as they go,
+       and shrinking away before they reach the frame. */
+    away: function (b, i, n, t, p, view) {
+      var k = i / n;
+      var a = k * TAU * 2.2 + t * 0.26;
+      var z = -1 - (i % 6) * 1.5;
+      var r = 1.25 + k * 0.4;
+      return {
+        x: Math.cos(a) * view.halfW(z) * r,
+        y: Math.sin(a) * view.halfH(z) * r * 1.1 + view.halfH(z) * 0.5,
+        z: z,
+        s: 0
+      };
+    }
+  };
+
+  /* ================================================================== */
+  /* THE FIELD                                                          */
+  /* ================================================================== */
+  function create(canvas) {
+    if (!canvas) return null;
+
+    var renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias: true, alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 1.75));
+    renderer.setClearAlpha(0);
+    if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+
+    var scene = new THREE.Scene();
+    scene.environment = studioEnv(renderer);
+
+    var camera = new THREE.PerspectiveCamera(40, 1, 0.1, 90);
+    camera.position.set(0, 0, 12);
+
+    /* --- lights: they shift as the page moves light ↔ dark ---------- */
+    var ambient = new THREE.AmbientLight(0xffe8cc, 0.7);
+    scene.add(ambient);
+
+    var key = new THREE.DirectionalLight(0xfff0d8, 2.6);
+    key.position.set(-5, 6, 7);
+    scene.add(key);
+
+    /* Gold key and lamp, green rim. The rim is the light that separates a
+       bean from a dark ground, so it takes the ground's colour — a bean on
+       the forest is edged by the forest, the way it would be in the room. */
+    var rim = new THREE.DirectionalLight(0x9cc4ab, 1.5);
+    rim.position.set(6, -2, -5);
+    scene.add(rim);
+
+    var cherry = new THREE.PointLight(0xc59d58, 20, 30, 2);   // the gold lamp
+    cherry.position.set(5, -2, 4);
+    scene.add(cherry);
+
+    var clouds = buildClouds(scene);
+    var cup = buildCup(scene);
+    var sky = buildSky(scene);
+
+    /* --- the pool --------------------------------------------------- */
+    var small = global.innerWidth < 760;
+    var COUNT = small ? 24 : 60;
+
+    var baseColour = new THREE.Color(0x5e3219);
+    var grain = grainTexture();
+    var matte = matteTexture();
+    var beans = [];
+
+    for (var i = 0; i < COUNT; i++) {
+      var r1 = hash3(i, 11, 3), r2 = hash3(i, 29, 7), r3 = hash3(i, 47, 13);
+
+      // the feature bean and the nearest few get real geometry
+      var level = i === 0 ? 'hi' : (i < 8 ? 'mid' : 'lo');
+
+      var mat = new THREE.MeshPhysicalMaterial({
+        color: baseColour.clone(),
+        vertexColors: true,
+        bumpMap: grain,
+        // bumpScale here is not a 0–1 knob: on a mesh this size anything
+        // under ~1 renders as a dead smooth surface. Swept it to find out.
+        bumpScale: i === 0 ? 1.6 : 1.1,
+        roughnessMap: matte,
+        roughness: 0.94,
+        metalness: 0.0,
+        /* The oil a roast pushes to the surface is a thin, fairly smooth
+           film over a rough body — so the clearcoat is tighter than the base
+           and throws small, bright glints rather than a wash. The amount
+           still comes from the roast (see setRoast); only its polish is set
+           here. */
+        clearcoat: 0.40,
+        clearcoatRoughness: 0.30,
+        /* Sheen is the warm, velvety falloff at the silhouette. A roasted
+           bean glows amber at its edges where light skims the surface; the
+           old grey-brown sheen was part of why the beans read as clay. */
+        sheen: 0.55,
+        sheenRoughness: 0.52,
+        sheenColor: new THREE.Color(0xc0824a),
+        envMapIntensity: 1.0
+      });
+
+      var m = new THREE.Mesh(sharedGeo(level), mat);
+      m.scale.setScalar(0.001);
+
+      beans.push({
+        mesh: m,
+        mat: mat,
+        seed: r1 * 10,
+        r1: r1, r2: r2, r3: r3,
+        // The feature bean is only large where a formation asks for it
+        // (swarm, orbit); everywhere else it is just another bean.
+        size: i === 0 ? 0.60 : 0.34 + r2 * 0.62,
+        // every bean roasts slightly differently
+        tint: 0.84 + r3 * 0.34,
+        pose: i === 0,
+        drag: 0,
+        spin: new THREE.Vector3((r1 - 0.5) * 0.30, (r2 - 0.5) * 0.36, (r3 - 0.5) * 0.24),
+        cur: new THREE.Vector3(0, 0, -14),
+        curS: 0.001
+      });
+
+      if (i === 0) {
+        // presented, not tumbling: crease upright, a slight three-quarter tilt
+        m.rotation.set(0.10, -0.45, 0.20);
+      } else {
+        m.rotation.set(r1 * TAU, r2 * TAU, r3 * TAU);
+      }
+      scene.add(m);
+    }
+
+    /* --- state ------------------------------------------------------ */
+    var state = {
+      formation: 'swarm', prevFormation: 'swarm', blend: 1,
+      local: 0,            // progress inside the current section
+      heroDolly: 0,        // hero-only camera push
+      pointer: { x: 0, y: 0 }, smooth: { x: 0, y: 0 },
+      camZ: 12,
+      cloudCur: 0,
+      dive: 0,             // GSAP-scrubbed travel through the harvest
+      divePush: 0,         // ...and how far in the camera has gone with it
+      diveRelease: 0,      // ...and how far the beans have scattered to the roasts
+      heroCur: 0,
+      building: false,
+      light: 0,            // 0 = dark section, 1 = light section
+      lightCur: 0,
+      roast: { target: new THREE.Color(0x5e3219), cur: new THREE.Color(0x5e3219),
+               oil: 0.40, oilCur: 0.40, rough: 0.66, roughCur: 0.66 },
+      running: false, hidden: false
+    };
+
+    /* Warm, not cool. The beans are redder now, and a red-brown lerped
+       toward a cool green-grey passes through salmon on the way — distant
+       beans went pink. A haze with some of the ivory's warmth in it takes
+       them through tan instead, which is what distance does to brown. */
+    if (!HAZE) HAZE = new THREE.Color(0xCBD1C0);
+
+    var clock = new THREE.Clock();
+    var tmp = new THREE.Vector3();
+
+    // how much world space the camera sees at a given depth; kept current by
+    // resize() below, and used by formations that place in screen fractions
+    var view = {
+      halfH: function (z) { return (state.camZ - z) * view._tan; },
+      halfW: function (z) { return (state.camZ - z) * view._tan * view._aspect; },
+      _tan: Math.tan(40 * Math.PI / 360),
+      _aspect: 1.6,
+      _dive: 0
+    };
+
+    function resize() {
+      var w = global.innerWidth;
+      var h = global.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      view._aspect = camera.aspect;
+      view._tan = Math.tan(camera.fov * Math.PI / 360);
+    }
+
+    function place(b, i, t) {
+      var f = FORMATIONS[state.formation] || FORMATIONS.swarm;
+      var target = f(b, i, COUNT, t, state.local, view);
+
+      if (state.blend < 1) {
+        var pf = FORMATIONS[state.prevFormation] || FORMATIONS.swarm;
+        var prev = pf(b, i, COUNT, t, state.local, view);
+        var k = smooth(state.blend);
+        target = {
+          x: lerp(prev.x, target.x, k),
+          y: lerp(prev.y, target.y, k),
+          z: lerp(prev.z, target.z, k),
+          s: lerp(prev.s, target.s, k)
+        };
+      }
+      return target;
+    }
+
+    function frame() {
+      if (!state.running) return;
+      global.requestAnimationFrame(frame);
+      if (state.hidden) return;
+
+      var dt = Math.min(clock.getDelta(), 0.05);
+      var t = clock.elapsedTime;
+
+      if (state.blend < 1) state.blend = Math.min(1, state.blend + dt * 1.15);
+
+      /* pointer parallax on the camera */
+      var kPointer = damp(0.05, dt);
+      state.smooth.x = lerp(state.smooth.x, state.pointer.x, kPointer);
+      state.smooth.y = lerp(state.smooth.y, state.pointer.y, kPointer);
+      camera.position.x = state.smooth.x * 1.15;
+      camera.position.y = state.smooth.y * -0.8;
+
+      // The dolly belongs to the hero alone. Without this the camera stays
+      // parked at hero-close range and every later section renders enormous.
+      // it closes on the cup rather than passing through it
+      /* The dive is not only the beans moving: the camera goes with them, and
+         that is what gives the cloud bank behind them parallax to move with. */
+      view._dive = state.dive;
+      view._release = state.diveRelease;
+      var camTarget = 12;
+      if (state.formation === 'swarm') camTarget = lerp(12, 7.4, state.heroDolly);
+      else if (state.formation === 'dive') camTarget = lerp(12, 9.8, state.divePush);
+      state.camZ = lerp(state.camZ, camTarget, damp(0.07, dt));
+      camera.position.z = state.camZ;
+      camera.lookAt(state.smooth.x * 0.35, state.smooth.y * -0.25, camera.position.z - 9);
+
+      /* the cup and its sun belong to the hero */
+      /* The loader runs before any scroll has happened, so the cup has to
+         be on stage whether or not the hero's zone has been resolved. */
+      var wantHero = (state.formation === 'swarm' || state.building) ? 1 : 0;
+      state.heroCur = state.building ? 1
+                                     : lerp(state.heroCur, wantHero, damp(0.06, dt));
+      var heroOn = state.heroCur > 0.01;
+      cup.setVisible(heroOn);
+      sky.setVisible(heroOn);
+      cup.update(t, state.heroCur, state.heroDolly, dt);
+      sky.update(t, state.heroCur);
+
+      /* The bank belongs to the harvest section alone. The canvas is fixed and
+         full-viewport, so without fading at both ends the clouds spill over
+         whichever section is arriving next. */
+      var wantCloud = 0;
+      if (state.formation === 'dive') {
+        var lp = state.local;
+        wantCloud = smooth(clamp(lp / 0.12, 0, 1)) *
+                    smooth(clamp((0.88 - lp) / 0.12, 0, 1));
+      }
+      state.cloudCur = lerp(state.cloudCur, wantCloud, damp(0.05, dt));
+      clouds.update(t, state.cloudCur * 0.92, (state.local - 0.5) * -3.2);
+
+      /* daylight on the cream sections, roastery gloom on the dark ones */
+      state.lightCur = lerp(state.lightCur, state.light, damp(0.06, dt));
+      var L = state.lightCur;
+      /* Less fill, more key. Ambient light lands equally on every face, so
+         at 1.35 on the light sections it filled the shadow side of each bean
+         up to nearly the lit side — no form, and a flat bean reads as a
+         painted one however good its colour is. The key picks up the slack. */
+      ambient.intensity = lerp(0.50, 0.95, L);
+      key.intensity = lerp(2.9, 4.2, L);
+      rim.intensity = lerp(1.5, 0.75, L);
+      cherry.intensity = lerp(18 + Math.sin(t * 1.1) * 5, 4, L);
+      renderer.toneMappingExposure = lerp(1.08, 0.98, L);
+
+      /* roast colour eases across the whole field */
+      var R = state.roast;
+      var kRoast = damp(0.07, dt);
+      R.cur.lerp(R.target, kRoast);
+      R.oilCur = lerp(R.oilCur, R.oil, kRoast);
+      R.roughCur = lerp(R.roughCur, R.rough, kRoast);
+
+      /* The hero ring and the harvest cyclone are driven — their targets orbit
+         continuously — so a slow follow lags behind and the ring collapses
+         toward the middle. Static formations keep the softer rate. */
+      var driven = state.formation === 'swarm' || state.formation === 'dive';
+      /* The dive follows its corridor more softly than the hero ring: its
+         targets move with the scroll, and a softer follow turns a flick of
+         the wheel into a glide instead of a jolt. */
+      var kMove = damp(state.formation === 'dive' ? 0.13 : (driven ? 0.24 : 0.055), dt);
+
+      /* How much of the frame is the dive right now — 1 once it has fully
+         taken over, and easing through the blend at either end, so the haze
+         arrives and leaves with the corridor rather than switching on. */
+      var haze = (state.formation === 'dive' ? smooth(state.blend)
+               : (state.prevFormation === 'dive' ? 1 - smooth(state.blend) : 0));
+      /* A driven formation fades beans out to hide a restart, and the frame
+         loop only teleports one once BOTH its current and its target scale
+         have reached zero. On the slow follow that lands well after the
+         formation wanted it, so the wrap goes through on the crisper rate. */
+      var kScale = damp(driven ? 0.17 : 0.075, dt);
+
+      for (var i = 0; i < beans.length; i++) {
+        var b = beans[i];
+
+        var target = place(b, i, t);
+        tmp.set(target.x, target.y, target.z);
+
+        /* A bean nobody can see has no visible path. Formations that have to
+           restart one — a corridor reaching the lens, a column running off the
+           bottom — fade it out first and can then put it back wherever they
+           like, instead of the follow dragging it across the frame. */
+        var unseen = b.curS <= 0.012 && target.s <= 0.012;
+        b.cur.lerp(tmp, (reduced || unseen) ? 1 : kMove);
+        b.curS = lerp(b.curS, Math.max(target.s, 0.0001), kScale);
+
+        b.mesh.position.copy(b.cur);
+        b.mesh.scale.setScalar(b.curS);
+        b.mesh.visible = b.curS > 0.01;
+
+        if (b.pose) {
+          // Left to spin freely it ends up showing its blank back. Rock it
+          // around the pose instead, so the fissure always faces the reader.
+          b.mesh.rotation.y = -0.38 + b.drag +
+                              (reduced ? 0 : Math.sin(t * 0.22) * 0.55);
+          b.mesh.rotation.x = 0.10 + (reduced ? 0 : Math.sin(t * 0.17) * 0.07);
+        } else if (!reduced && b.mesh.visible) {
+          b.mesh.rotation.x += b.spin.x * dt;
+          b.mesh.rotation.y += b.spin.y * dt;
+          b.mesh.rotation.z += b.spin.z * dt;
+        }
+
+        // per-bean roast variation, so the batch never looks uniform
+        b.mat.color.copy(R.cur).multiplyScalar(b.tint);
+        /* Aerial perspective. A corridor thirty units deep only reads as deep
+           if its far end sits in the same air as the cloud bank behind it —
+           size alone makes distant beans small, not distant. Tied to the dive
+           so it costs nothing in sections that have no distance to sell. */
+        if (haze > 0.002) {
+          b.mat.color.lerp(HAZE, clamp((-b.cur.z - 4) / 30, 0, 1) * 0.48 * haze);
+        }
+        b.mat.clearcoat = R.oilCur;
+        b.mat.roughness = R.roughCur;
+        b.mat.envMapIntensity = lerp(1.05, 1.4, L);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function start() {
+      if (state.running) return;
+      state.running = true;
+      clock.start();
+      global.requestAnimationFrame(frame);
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      state.hidden = document.hidden;
+    });
+
+    resize();
+    start();
+
+    return {
+      resize: resize,
+
+      /* swap arrangements; the change eases in rather than cutting */
+      setFormation: function (name, localProgress) {
+        if (!FORMATIONS[name]) return;
+        if (name !== state.formation) {
+          state.prevFormation = state.formation;
+          state.formation = name;
+          state.blend = 0;
+        }
+        if (typeof localProgress === 'number') state.local = localProgress;
+      },
+
+      setLocal: function (p) { state.local = p; },
+      /* Two values, because they are not the same shape. Travel only ever
+         goes forward — wind it back and the corridor runs in reverse — while
+         the push winds up and then eases back out again as the dive lands,
+         so the camera is already home by the time the formation changes and
+         there is nothing left to snap. */
+      setDive: function (travel, push, release) {
+        state.dive = Math.max(0, travel || 0);
+        state.divePush = clamp(push == null ? travel : push, 0, 1);
+        state.diveRelease = clamp(release || 0, 0, 1);
+      },
+      setHeroDolly: function (p) { state.heroDolly = clamp(p, 0, 1); },
+      setLight: function (v) { state.light = clamp(v, 0, 1); },
+      setPointer: function (x, y) { state.pointer.x = x; state.pointer.y = y; },
+
+      setRoast: function (hex, oil, rough) {
+        state.roast.target.set(hex);
+        if (typeof oil === 'number') state.roast.oil = oil;
+        if (typeof rough === 'number') state.roast.rough = rough;
+      },
+
+      /* the lab lets you spin the feature bean by hand */
+      nudgeFeature: function (dx) {
+        if (beans[0]) beans[0].drag += dx;
+      },
+
+      nudgeCup: function (dx) { cup.nudge(dx); },
+      lookCup: function (x) { cup.look(x); },
+      setCupBuild: function (p) {
+        state.building = p < 0.999;
+        cup.setBuild(p);
+      },
+
+      /* for diagnostics: what the field currently thinks it is doing */
+      debug: function () {
+        var xs = [], ys = [], zs = [], ss = [];
+        for (var i = 0; i < beans.length; i++) {
+          xs.push(beans[i].cur.x); ys.push(beans[i].cur.y);
+          zs.push(beans[i].cur.z); ss.push(beans[i].curS);
+        }
+        var rng = function (a) {
+          return [Math.min.apply(null, a).toFixed(2),
+                  Math.max.apply(null, a).toFixed(2)].join(' … ');
+        };
+        return { formation: state.formation, prev: state.prevFormation,
+                 blend: state.blend, local: state.local, camZ: state.camZ, dive: state.dive,
+                 light: state.lightCur, hero: state.heroCur, count: beans.length,
+                 x: rng(xs), y: rng(ys), z: rng(zs), scale: rng(ss) };
+      },
+
+      dispose: function () { state.running = false; renderer.dispose(); }
+    };
+  }
+
+  global.LattecanoBeans = {
+    supported: true,
+    create: create,
+    beanGeometry: beanGeometry,
+    grainTexture: grainTexture,
+    matteTexture: matteTexture
+  };
+})(window);
